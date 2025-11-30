@@ -1,4 +1,4 @@
-from manim_imports_ext import *
+from manim import *
 
 
 OUTPUT_DIRECTORY = "clacks/question"
