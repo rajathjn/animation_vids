@@ -1,11 +1,9 @@
 from manim import *
 import numpy as np
 from scipy.io import wavfile
-import os
+from pathlib import Path
 
-# ========================================
-# GLOBAL CONFIGURATION PARAMETERS
-# ========================================
+# Global configuration parameters
 # Modify these parameters to easily test different initial setups
 
 # Circle boundary parameters
@@ -18,11 +16,11 @@ DOT_RADIUS = 0.15  # Visual radius of the dot
 DOT_COLOR = RED
 
 # Physics parameters
-GRAVITY = np.array([0, -9.8, 0])  # Gravity vector (m/s²)
+GRAVITY = np.array([0, -9.8, 0])  # Gravity vector (m/s^2)
 INITIAL_VELOCITY = np.array([0.5, -3, 0])  # Initial velocity (x, y, z)
-DAMPING = 0.85  # Energy retention on bounce (0.85 = 85% energy retained)
+DAMPING = 0.85  # Energy retention on bounce (Ex: 0.85 = 85% energy retained)
 SIMULATION_DT = 0.005  # Time step for physics simulation
-MAX_SIMULATION_TIME = 12  # Maximum simulation time in seconds
+MAX_SIMULATION_TIME = 30  # Maximum simulation time in seconds
 
 # Trail effect configuration
 ENABLE_TRAIL = True  # Set to False to disable the trail effect
@@ -31,8 +29,9 @@ TRAIL_WIDTH = 1
 TRAIL_OPACITY = 0.6
 
 # Sound effect configuration
-SOUND_EFFECT_PATH = "../sound_effect/clack.wav"  # Path to the clack sound effect
+SOUND_EFFECT = "clack.wav"  # Path to the sound effect if any.
 USE_GENERATED_SOUND = False  # Set to True to use procedurally generated sound instead
+MIN_BOUNCE_SOUND_INTERVAL = 0.05  # Minimum time (seconds) between bounce sounds to prevent overlap
 
 
 def generate_hit_sound(frequency=440, duration=0.1, sample_rate=44100, volume=1.0):
@@ -66,7 +65,7 @@ def generate_hit_sound(frequency=440, duration=0.1, sample_rate=44100, volume=1.
     return wave.astype(np.int16)
 
 
-def generate_ambient_sound(duration=12, sample_rate=44100):
+def generate_ambient_sound(duration=12, sample_rate=44100, volume=0.1):
     """
     Generate a simple ambient/ASMR-like background sound.
     
@@ -94,7 +93,7 @@ def generate_ambient_sound(duration=12, sample_rate=44100):
     ambient = noise + 0.02 * np.sin(2 * np.pi * 0.1 * t) + 0.015 * np.sin(2 * np.pi * 0.23 * t)
     
     # Scale to int16 range with lower volume (30%) for background
-    ambient = ambient * 32767 * 0.3
+    ambient = ambient * 32767 * volume
     return ambient.astype(np.int16)
 
 
@@ -113,10 +112,7 @@ class BouncingDot(Scene):
         """
         Main construction method called by Manim to build and render the scene.
         """
-        # ========================================
-        # SCENE SETUP
-        # ========================================
-        
+        # Scene setup
         self.camera.background_color = BLACK
         
         # Circle parameters - defines the boundary for bouncing
@@ -128,10 +124,7 @@ class BouncingDot(Scene):
         dot = Dot(point=dot_start_pos, radius=DOT_RADIUS, color=DOT_COLOR)
         self.add(dot)
         
-        # ========================================
-        # PHYSICS SIMULATION - CALCULATE ALL POSITIONS
-        # ========================================
-        
+        # Physics simulation - calculate all positions
         # Lists to store simulation data
         positions = [dot_start_pos.copy()]  # All positions the dot will visit
         bounce_times = []  # Timestamps when bounces occur (for audio sync)
@@ -151,19 +144,13 @@ class BouncingDot(Scene):
         
         # Main physics simulation loop - runs until time limit or dot stops moving
         while current_time < MAX_SIMULATION_TIME:
-            # ----------------------------------------
-            # STEP 1: Apply gravity (constant acceleration)
-            # ----------------------------------------
+            # Step 1: Apply gravity (constant acceleration)
             current_vel = current_vel + GRAVITY * SIMULATION_DT
             
-            # ----------------------------------------
-            # STEP 2: Update position based on velocity
-            # ----------------------------------------
+            # Step 2: Update position based on velocity
             new_pos = current_pos + current_vel * SIMULATION_DT
             
-            # ----------------------------------------
-            # STEP 3: Check for collision with circle boundary
-            # ----------------------------------------
+            # Step 3: Check for collision with circle boundary
             distance_from_center = np.sqrt(new_pos[0]**2 + new_pos[1]**2)
             
             # If dot has moved outside the boundary, a collision occurred
@@ -176,10 +163,7 @@ class BouncingDot(Scene):
                 
                 print(f"Bounce #{bounce_count} at time {current_time:.2f}s, distance: {distance_from_center:.3f}")
                 
-                # ----------------------------------------
-                # COLLISION RESPONSE
-                # ----------------------------------------
-                
+                # Collision response
                 # Calculate the direction from center to dot (outward normal)
                 direction_2d = np.array([new_pos[0], new_pos[1]]) / distance_from_center
                 
@@ -211,11 +195,12 @@ class BouncingDot(Scene):
             positions.append(current_pos.copy())
             current_time += SIMULATION_DT
             
-            # ----------------------------------------
-            # STEP 4: Check stopping condition
-            # ----------------------------------------
+            # Step 4: Check stopping condition
+            # Dot must be slow AND near the bottom of the circle (resting position)
             speed = np.linalg.norm(current_vel)
-            if speed < 0.05 and current_time > 3:
+            is_near_bottom = current_pos[1] < -collision_distance + 0.5  # Near bottom of circle
+            is_on_boundary = distance_from_center > collision_distance - 0.1  # Close to the edge
+            if speed < 0.05 and current_time > 3 and is_near_bottom and is_on_boundary:
                 print(f"Stopping simulation at time {current_time:.2f}s, speed: {speed:.4f}")
                 
                 # Add extra frames at the final position
@@ -223,10 +208,7 @@ class BouncingDot(Scene):
                     positions.append(current_pos.copy())
                 break
         
-        # ========================================
-        # SIMULATION COMPLETE - OUTPUT SUMMARY
-        # ========================================
-        
+        # Simulation complete - output summary
         print(f"\nSimulation complete:")
         print(f"  Total positions: {len(positions)}")
         print(f"  Total bounces: {bounce_count}")
@@ -235,33 +217,38 @@ class BouncingDot(Scene):
         print(f"  Distance from center: {np.sqrt(current_pos[0]**2 + current_pos[1]**2):.3f}")
         print()
         
-        # ========================================
-        # AUDIO GENERATION
-        # ========================================
-        
+        # Audio generation
         total_duration = (len(positions) - 1) * SIMULATION_DT
         
         print("Generating audio files...")
-        audio_dir = "media/audio"
-        os.makedirs(audio_dir, exist_ok=True)
+        audio_dir = Path("media/audio")
+        audio_dir.mkdir(parents=True, exist_ok=True)
         
-        # ----------------------------------------
+        sound_effect_dir = Path("sound_effect")
+        if not sound_effect_dir.exists():
+            sound_effect_dir.mkdir(parents=True, exist_ok=True)
+        
         # Generate ambient background sound
-        # ----------------------------------------
         ambient_duration = total_duration + 1
         ambient_sound = generate_ambient_sound(duration=ambient_duration)
-        ambient_path = os.path.join(audio_dir, "ambient.wav")
+        ambient_path = audio_dir / "ambient.wav"
         wavfile.write(ambient_path, 44100, ambient_sound)
         print(f"  Ambient sound saved to {ambient_path}")
         
-        # ----------------------------------------
         # Generate or load hit sounds
-        # ----------------------------------------
         sample_rate = 44100
         total_samples = int(ambient_duration * sample_rate)
         hit_audio = np.zeros(total_samples, dtype=np.float32)
         
-        if USE_GENERATED_SOUND:
+        # Check if sound effect file exists, fallback to generated sound if not
+        use_generated_sound = USE_GENERATED_SOUND
+        sound_effect_path = sound_effect_dir / SOUND_EFFECT
+        if not use_generated_sound and not sound_effect_path.exists():
+            print(f"  WARNING: Sound effect not found at {sound_effect_path}")
+            print(f"  Falling back to generated sound...")
+            use_generated_sound = True
+        
+        if use_generated_sound:
             # Use procedurally generated sound
             if bounce_speeds:
                 max_speed = max(bounce_speeds)
@@ -269,6 +256,10 @@ class BouncingDot(Scene):
                 speed_range = max_speed - min_speed if max_speed > min_speed else 1
             
             for i, (bounce_time, speed) in enumerate(zip(bounce_times, bounce_speeds)):
+                # Skip if too close to previous bounce to prevent sound overlap
+                if i > 0 and (bounce_time - bounce_times[i-1]) < MIN_BOUNCE_SOUND_INTERVAL:
+                    continue
+                
                 volume = 0.2 + 0.8 * ((speed - min_speed) / speed_range if speed_range > 0 else 1.0)
                 frequency = 440 + (i % 3) * 100
                 hit_sound = generate_hit_sound(frequency=frequency, volume=volume)
@@ -281,64 +272,54 @@ class BouncingDot(Scene):
                 
                 print(f"  Bounce {i+1} at {bounce_time:.2f}s, speed: {speed:.2f}, volume: {volume:.2f}")
         else:
-            # Use clack.wav sound effect
-            clack_path = os.path.join(os.path.dirname(__file__), SOUND_EFFECT_PATH)
-            if os.path.exists(clack_path):
-                clack_sample_rate, clack_sound = wavfile.read(clack_path)
-                
-                # Convert to mono if stereo
-                if len(clack_sound.shape) > 1:
-                    clack_sound = clack_sound.mean(axis=1)
-                
-                # Resample if necessary
-                if clack_sample_rate != sample_rate:
-                    # Simple resampling by interpolation
-                    clack_duration = len(clack_sound) / clack_sample_rate
-                    new_length = int(clack_duration * sample_rate)
-                    clack_sound = np.interp(
-                        np.linspace(0, len(clack_sound) - 1, new_length),
-                        np.arange(len(clack_sound)),
-                        clack_sound.astype(np.float32)
-                    )
-                else:
-                    clack_sound = clack_sound.astype(np.float32)
-                
-                # Normalize clack sound
-                clack_max = np.abs(clack_sound).max()
-                if clack_max > 0:
-                    clack_sound = clack_sound / clack_max * 32767
-                
-                # Calculate volume based on bounce speed
-                if bounce_speeds:
-                    max_speed = max(bounce_speeds)
-                    min_speed = min(bounce_speeds)
-                    speed_range = max_speed - min_speed if max_speed > min_speed else 1
-                
-                for i, (bounce_time, speed) in enumerate(zip(bounce_times, bounce_speeds)):
-                    volume = 0.3 + 0.7 * ((speed - min_speed) / speed_range if speed_range > 0 else 1.0)
-                    
-                    start_sample = int(bounce_time * sample_rate)
-                    end_sample = min(start_sample + len(clack_sound), total_samples)
-                    
-                    if start_sample < total_samples:
-                        sound_to_add = clack_sound[:end_sample - start_sample] * volume
-                        hit_audio[start_sample:end_sample] += sound_to_add
-                    
-                    print(f"  Bounce {i+1} at {bounce_time:.2f}s, speed: {speed:.2f}, volume: {volume:.2f}")
+            # Use sound effect
+            sound_effect_sample_rate, sound_effect_sound = wavfile.read(sound_effect_path)
+            
+            # Convert to mono if stereo
+            if len(sound_effect_sound.shape) > 1:
+                sound_effect_sound = sound_effect_sound.mean(axis=1)
+            
+            # Resample if necessary
+            if sound_effect_sample_rate != sample_rate:
+                # Simple resampling by interpolation
+                sound_effect_duration = len(sound_effect_sound) / sound_effect_sample_rate
+                new_length = int(sound_effect_duration * sample_rate)
+                sound_effect_sound = np.interp(
+                    np.linspace(0, len(sound_effect_sound) - 1, new_length),
+                    np.arange(len(sound_effect_sound)),
+                    sound_effect_sound.astype(np.float32)
+                )
             else:
-                print(f"  WARNING: Sound effect not found at {clack_path}")
-                print(f"  Falling back to generated sound...")
-                # Fallback to generated sound
-                for i, (bounce_time, speed) in enumerate(zip(bounce_times, bounce_speeds)):
-                    hit_sound = generate_hit_sound(frequency=440, volume=0.8)
-                    start_sample = int(bounce_time * sample_rate)
-                    end_sample = min(start_sample + len(hit_sound), total_samples)
-                    if start_sample < total_samples:
-                        hit_audio[start_sample:end_sample] += hit_sound[:end_sample - start_sample].astype(np.float32)
+                sound_effect_sound = sound_effect_sound.astype(np.float32)
+            
+            # Normalize sound_effect sound
+            sound_effect_max = np.abs(sound_effect_sound).max()
+            if sound_effect_max > 0:
+                sound_effect_sound = sound_effect_sound / sound_effect_max * 32767
+            
+            # Calculate volume based on bounce speed
+            if bounce_speeds:
+                max_speed = max(bounce_speeds)
+                min_speed = min(bounce_speeds)
+                speed_range = max_speed - min_speed if max_speed > min_speed else 1
+            
+            for i, (bounce_time, speed) in enumerate(zip(bounce_times, bounce_speeds)):
+                # Skip if too close to previous bounce to prevent sound overlap
+                if i > 0 and (bounce_time - bounce_times[i-1]) < MIN_BOUNCE_SOUND_INTERVAL:
+                    continue
+                
+                volume = 0.3 + 0.7 * ((speed - min_speed) / speed_range if speed_range > 0 else 1.0)
+                
+                start_sample = int(bounce_time * sample_rate)
+                end_sample = min(start_sample + len(sound_effect_sound), total_samples)
+                
+                if start_sample < total_samples:
+                    sound_to_add = sound_effect_sound[:end_sample - start_sample] * volume
+                    hit_audio[start_sample:end_sample] += sound_to_add
+                
+                print(f"  Bounce {i+1} at {bounce_time:.2f}s, speed: {speed:.2f}, volume: {volume:.2f}")
         
-        # ----------------------------------------
         # Mix ambient and hit sounds together
-        # ----------------------------------------
         mixed_audio = ambient_sound.astype(np.float32) + hit_audio
         
         # Normalize to prevent clipping
@@ -348,15 +329,12 @@ class BouncingDot(Scene):
         
         mixed_audio = mixed_audio.astype(np.int16)
         
-        mixed_path = os.path.join(audio_dir, "bounce_with_audio.wav")
+        mixed_path = audio_dir / "bounce_with_audio.wav"
         wavfile.write(mixed_path, sample_rate, mixed_audio)
         print(f"  Mixed audio saved to {mixed_path}")
         print()
         
-        # ========================================
-        # MANIM ANIMATION SETUP
-        # ========================================
-        
+        # Manim animation setup
         time_tracker = ValueTracker(0)
         
         print(f"Animation settings:")
@@ -366,9 +344,7 @@ class BouncingDot(Scene):
         print(f"  Trail enabled: {ENABLE_TRAIL}")
         print()
         
-        # ----------------------------------------
         # Create animated dot using always_redraw
-        # ----------------------------------------
         def get_dot_position():
             """Returns a Dot object at the position corresponding to the current time."""
             t = time_tracker.get_value()
@@ -376,9 +352,7 @@ class BouncingDot(Scene):
             index = min(index, len(positions) - 1)
             return Dot(point=positions[index], radius=DOT_RADIUS, color=DOT_COLOR)
         
-        # ----------------------------------------
         # Create animated trail (if enabled)
-        # ----------------------------------------
         def get_trail_path():
             """Create a trail showing the path traveled so far."""
             t = time_tracker.get_value()
@@ -409,9 +383,7 @@ class BouncingDot(Scene):
         else:
             self.add(animated_dot)
         
-        # ----------------------------------------
         # Add audio and animate
-        # ----------------------------------------
         self.add_sound(mixed_path)
         
         self.play(time_tracker.animate.set_value(total_duration), run_time=total_duration, rate_func=linear)
