@@ -15,20 +15,20 @@ CIRCLE_CENTER = np.array([0, 0, 0])
 CIRCLE_RADIUS = 3  # Units in Manim coordinate system
 
 # Dot parameters
-DOT_START_POS = CIRCLE_CENTER.copy()  # Starting position of the dot
-DOT_RADIUS = 0.15  # Visual radius of the dot
-DOT_COLOR = RED
+DOT_START_POS = np.array([0,2.5,0])  # Starting position of the dot
+DOT_RADIUS = 0.2  # Visual radius of the dot
+DOT_COLOR = YELLOW
 
 # Physics parameters
 GRAVITY = np.array([0, -9.8, 0])  # Gravity vector (m/s^2)
-INITIAL_VELOCITY = np.array([0.5, -3, 0])  # Initial velocity (x, y, z)
-DAMPING = 0.85  # Energy retention on bounce (Ex: 0.85 = 85% energy retained)
-SIMULATION_DT = 0.005  # Time step for physics simulation
-MAX_SIMULATION_TIME = 30  # Maximum simulation time in seconds
+INITIAL_VELOCITY = np.array([-2, -4.8, 0])  # Initial velocity (x, y, z)
+DAMPING = 0.99  # Energy retention on bounce (Ex: 0.85 = 85% energy retained)
+SIMULATION_DT = 0.001  # Time step for physics simulation
+MAX_SIMULATION_TIME = 240  # Maximum simulation time in seconds
 
 # Trail effect configuration
-ENABLE_TRAIL = True  # Set to False to disable the trail effect
-TRAIL_COLOR = YELLOW
+ENABLE_TRAIL = False  # Set to False to disable the trail effect
+TRAIL_COLOR = RED
 TRAIL_WIDTH = 1
 TRAIL_OPACITY = 0.6
 
@@ -46,9 +46,9 @@ TRAIL_SAMPLE_INTERVAL = 3
 
 # For multiple dots
 DOTS = [
-    { "initial_velocity": np.array([0.5, -5, 0]), "damping": 0.85, "radius": 0.25, "color": RED, "start_pos": CIRCLE_CENTER.copy() },
-    { "initial_velocity": np.array([-1, -8, 0]), "damping": 0.95, "radius": 0.15, "color": GREEN, "start_pos": CIRCLE_CENTER.copy()+np.array([1,0,0]) },
-    { "initial_velocity": np.array([3, -4, 0]), "damping": 0.90, "radius": 0.20, "color": BLUE, "start_pos": CIRCLE_CENTER.copy()+np.array([-0.5,2,0]) },
+    { "initial_velocity": np.array([0.5, -5, 0]), "damping": 0.95, "radius": 0.25, "color": RED, "start_pos": CIRCLE_CENTER.copy() },
+    { "initial_velocity": np.array([-1, -8, 0]), "damping": 0.99, "radius": 0.15, "color": GREEN, "start_pos": CIRCLE_CENTER.copy()+np.array([1,0,0]) },
+    { "initial_velocity": np.array([3, -4, 0]), "damping": 0.98, "radius": 0.20, "color": BLUE, "start_pos": CIRCLE_CENTER.copy()+np.array([-0.5,2,0]) },
 ]
 
 
@@ -137,6 +137,17 @@ class BouncingDot(Scene):
     
     def construct(self) -> None:
         """Build and render the bouncing dot animation."""
+        
+        # Validate that the starting position is within the circle
+        distance_from_center = np.linalg.norm(DOT_START_POS[:2] - CIRCLE_CENTER[:2])
+        max_allowed_distance = CIRCLE_RADIUS - DOT_RADIUS
+        if distance_from_center > max_allowed_distance:
+            raise ValueError(
+                f"DOT_START_POS {DOT_START_POS[:2]} is outside the circle boundary. "
+                f"Distance from center: {distance_from_center:.3f}, "
+                f"Max allowed (CIRCLE_RADIUS - DOT_RADIUS): {max_allowed_distance:.3f}"
+            )
+        
         self.camera.background_color = BLACK
         
         # Create boundary circle
@@ -170,7 +181,7 @@ class BouncingDot(Scene):
             new_pos = current_pos + current_vel * SIMULATION_DT
             
             # Check for collision with circle boundary
-            distance_from_center = np.linalg.norm(new_pos[:2])
+            distance_from_center = np.linalg.norm(new_pos[:2]) # Distance in XY plane sqrt
             
             if distance_from_center > collision_distance:
                 # Record bounce data for audio
