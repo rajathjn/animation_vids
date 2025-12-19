@@ -1,6 +1,36 @@
+# Python
 .venv/
-.DS_Store
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+
+# IDE
 .vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Manim
 media/
+
+# Temporary files
+*.tmp
+*.temp
+.temp/
+temp/
+
+# Keep outputs folder but ignore its contents except structure
+outputs/
+!outputs/.gitkeep
+
+# Keep example config as reference
+!app.cfg.example
