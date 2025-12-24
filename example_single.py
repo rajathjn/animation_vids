@@ -36,15 +36,7 @@ def main():
         "INITIAL_VELOCITY_X": -13.0,  # Horizontal velocity
         "INITIAL_VELOCITY_Y": -6.0,   # Vertical velocity
     })
-    
-    # Override manim rendering settings (optional)
-    # config.override_manim({
-    #     "RENDERER": "opengl",        # Use OpenGL renderer
-    #     "PIXEL_WIDTH": 1080,         # Lower resolution for testing
-    #     "PIXEL_HEIGHT": 1920,
-    #     "DISABLE_CACHING": True,     # Add new manim config keys
-    # })
-    
+        
     # Render the animation directly
     output_path = render_animation(
         animation_name="BouncingDot",

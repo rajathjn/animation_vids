@@ -65,13 +65,6 @@ def main():
         ],
     })
     
-    # Override manim rendering settings (optional)
-    # config.override_manim({
-    #     "RENDERER": "cairo",
-    #     "PIXEL_WIDTH": 1080,
-    #     "PIXEL_HEIGHT": 1920,
-    # })
-    
     # Render the animation
     output_path = render_animation(
         animation_name="BouncingDots",

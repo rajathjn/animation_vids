@@ -77,14 +77,19 @@ class AnimationConfig:
                 else:
                     self._dots_config[key.upper()] = self._parse_value(value)
     
-    def _parse_value(self, value: str) -> Any:
+    def _parse_value(self, value: Any) -> Any:
         """
         Parse string value to appropriate Python type.
         
         - Booleans: 'true'/'false' (case-insensitive)
         - Numbers: All numeric values are treated as float
         - Strings: Everything else (colors, filenames, etc.)
+        - Non-strings: returned as-is
         """
+        # If not a string, return as-is
+        if not isinstance(value, str):
+            return value
+        
         value = value.strip()
         
         # Boolean values
@@ -380,6 +385,50 @@ class AnimationConfig:
         return self._dots_config.get("DOTS_JSON", [])
     
     # =========================================================================
+    # [manim] section properties
+    # =========================================================================
+    
+    @property
+    def MEDIA_DIR(self) -> str:
+        """Get media output directory from manim config."""
+        return str(self._manim_config.get("MEDIA_DIR", "outputs"))
+    
+    @property
+    def PIXEL_WIDTH(self) -> int:
+        """Get video width in pixels."""
+        return int(self._manim_config.get("PIXEL_WIDTH", 2160))
+    
+    @property
+    def PIXEL_HEIGHT(self) -> int:
+        """Get video height in pixels."""
+        return int(self._manim_config.get("PIXEL_HEIGHT", 3840))
+    
+    @property
+    def FRAME_RATE(self) -> float:
+        """Get video frame rate."""
+        return float(self._manim_config.get("FRAME_RATE", 60))
+    
+    @property
+    def RENDERER(self) -> str:
+        """Get renderer type (cairo or opengl)."""
+        return str(self._manim_config.get("RENDERER", "cairo"))
+    
+    @property
+    def BACKGROUND_COLOR(self) -> str:
+        """Get background color."""
+        return str(self._manim_config.get("BACKGROUND_COLOR", "BLACK"))
+    
+    @property
+    def FRAME_WIDTH(self) -> float:
+        """Get scene frame width."""
+        return float(self._manim_config.get("FRAME_WIDTH", 8.0))
+    
+    @property
+    def FRAME_HEIGHT(self) -> float:
+        """Get scene frame height."""
+        return float(self._manim_config.get("FRAME_HEIGHT", 14.22))
+    
+    # =========================================================================
     # Helper methods
     # =========================================================================
     
@@ -391,7 +440,17 @@ class AnimationConfig:
         in the format expected by manim (lowercase keys).
         """
         # Convert all manim config keys to lowercase for manim's tempconfig()
-        return {key.lower(): value for key, value in self._manim_config.items()}
+        config_dict: dict[str, Any] = {}
+        for key, value in self._manim_config.items():
+            key_lower = key.lower()
+            
+            # Convert pixel dimensions to integers
+            if key_lower in ("pixel_width", "pixel_height"):
+                config_dict[key_lower] = int(value)
+            else:
+                config_dict[key_lower] = value
+        
+        return config_dict
     
     def get_default_dot_config(self) -> dict[str, Any]:
         """

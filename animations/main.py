@@ -35,6 +35,7 @@ Usage:
 
 import json
 import shutil
+import time
 from pathlib import Path
 from datetime import datetime
 from typing import Any
@@ -110,6 +111,9 @@ def render_animation(
     print(f"Renderer: {config.RENDERER}")
     print(f"{'='*60}\n")
     
+    # Track rendering time using perf_counter for precise measurement
+    render_start_time = time.perf_counter()
+    
     # Get manim settings from config and add output file
     manim_settings = config.get_manim_config()
     manim_settings["preview"] = preview
@@ -127,6 +131,9 @@ def render_animation(
         # Get the output video path from manim
         video_path = Path(scene.renderer.file_writer.movie_file_path)
     
+    # Calculate elapsed time
+    render_elapsed = time.perf_counter() - render_start_time
+    
     # Copy video to our organized output folder
     final_video_path = animation_output_dir / f"{output_name}.mp4"
     if video_path.exists():
@@ -141,10 +148,17 @@ def render_animation(
         animation_name=animation_name,
         output_name=output_name,
         config=config,
+        render_time=render_elapsed,
     )
+    
+    # Format elapsed time
+    minutes = int(render_elapsed // 60)
+    seconds = render_elapsed % 60
+    time_str = f"{minutes}m {seconds:.1f}s" if minutes > 0 else f"{seconds:.1f}s"
     
     print(f"\n{'='*60}")
     print(f" Rendering complete!")
+    print(f"  Time elapsed: {time_str}")
     print(f"  Video: {final_video_path}")
     print(f"  Folder: {animation_output_dir}")
     print(f"{'='*60}\n")
@@ -157,12 +171,14 @@ def _save_metadata(
     animation_name: str,
     output_name: str,
     config: AnimationConfig,
+    render_time: float = 0.0,
 ) -> None:
     """Save animation metadata to JSON."""
     metadata = {
         "animation_name": animation_name,
         "output_name": output_name,
         "timestamp": datetime.now().isoformat(),
+        "render_time_seconds": render_time,
         "config": _serialize_config(config.to_dict()),
     }
     
