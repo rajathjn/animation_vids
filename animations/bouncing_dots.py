@@ -6,7 +6,7 @@ import numpy as np
 from numpy.typing import NDArray
 from scipy.io import wavfile
 from pathlib import Path
-from typing import Optional, List, Dict, Any
+from typing import Any
 
 from .config import AnimationConfig
 from .audio_utils import generate_hit_sound, generate_ambient_sound
@@ -23,69 +23,75 @@ class BouncingDots(Scene):
         - Optional trail effect per dot
         - Ambient and hit sound effects
     
+    Dots configuration is loaded from AnimationConfig.DOTS_JSON.
+    If DOTS_JSON is empty and USE_SINGLE_DOT_DEFAULTS is True, uses single dot
+    from [animation] section values. Otherwise raises ValueError.
+    
     Usage:
-        # Define dots configuration
-        dots_config = [
-            {"initial_velocity": np.array([0.5, -5, 0]), "damping": 0.95, "radius": 0.25, 
-             "color": "RED", "start_pos": np.array([0, 0, 0])},
-            {"initial_velocity": np.array([-1, -8, 0]), "damping": 0.99, "radius": 0.15, 
-             "color": "GREEN", "start_pos": np.array([1, 0, 0])},
-        ]
-        
         config = AnimationConfig()
-        scene = BouncingDots(config=config, dots=dots_config)
+        config.override({
+            "DOTS_JSON": [
+                {"color": "RED", "radius": 0.25, "start_pos": [0, 0, 0],
+                 "initial_velocity": [0.5, -5, 0], "damping": 0.95},
+            ]
+        })
+        scene = BouncingDots(config=config)
     """
     
-    def __init__(
-        self,
-        config: Optional[AnimationConfig] = None,
-        dots: Optional[List[Dict[str, Any]]] = None,
-        **kwargs
-    ):
+    def __init__(self, config: AnimationConfig, **kwargs):
         """
         Initialize the bouncing dots scene.
         
         Args:
-            config: AnimationConfig instance. If None, loads from app.cfg files.
-            dots: List of dot configurations. Each dict should contain:
-                  - initial_velocity: np.array([x, y, z])
-                  - damping: float (0-1)
-                  - radius: float
-                  - color: str (manim color name)
-                  - start_pos: np.array([x, y, z])
+            config: AnimationConfig instance (required).
             **kwargs: Additional arguments passed to Scene
+        
+        Raises:
+            ValueError: If DOTS_JSON is empty and USE_SINGLE_DOT_DEFAULTS is False
         """
         super().__init__(**kwargs)
-        self.config = config if config is not None else AnimationConfig()
+        self.config = config
         
-        # Default dots configuration if not provided
-        if dots is None:
-            circle_center = self.config.circle_center
-            self.dots_config = [
-                {
-                    "initial_velocity": np.array([0.5, -5, 0]),
-                    "damping": 0.95,
-                    "radius": 0.25,
-                    "color": "RED",
-                    "start_pos": circle_center.copy()
-                },
-                {
-                    "initial_velocity": np.array([-1, -8, 0]),
-                    "damping": 0.99,
-                    "radius": 0.15,
-                    "color": "GREEN",
-                    "start_pos": circle_center.copy() + np.array([1, 0, 0])
-                },
-                {
-                    "initial_velocity": np.array([3, -4, 0]),
-                    "damping": 0.98,
-                    "radius": 0.20,
-                    "color": "BLUE",
-                    "start_pos": circle_center.copy() + np.array([-0.5, 2, 0])
-                },
-            ]
-        else:
-            self.dots_config = dots
+        # Load dots configuration from config
+        self.dots_config = self._load_dots_config()
+    
+    def _load_dots_config(self) -> list[dict[str, Any]]:
+        """
+        Load dots configuration from AnimationConfig.
+        
+        Returns list of dot configs, each with: color, radius, start_pos, 
+        initial_velocity, damping.
+        
+        Raises:
+            ValueError: If no dots configured and USE_SINGLE_DOT_DEFAULTS is False
+        """
+        dots_json = self.config.DOTS_JSON
+        
+        if dots_json:
+            # Convert list values to numpy arrays
+            dots = []
+            for dot in dots_json:
+                dot_copy = dot.copy()
+                if "start_pos" in dot_copy:
+                    dot_copy["start_pos"] = np.array(dot_copy["start_pos"])
+                if "initial_velocity" in dot_copy:
+                    dot_copy["initial_velocity"] = np.array(dot_copy["initial_velocity"])
+                dots.append(dot_copy)
+            return dots
+        
+        # DOTS_JSON is empty - check if we should use single dot defaults
+        if self.config.USE_SINGLE_DOT_DEFAULTS:
+            default_dot = self.config.get_default_dot_config()
+            default_dot["start_pos"] = np.array(default_dot["start_pos"])
+            default_dot["initial_velocity"] = np.array(default_dot["initial_velocity"])
+            return [default_dot]
+        
+        # No dots and no fallback
+        raise ValueError(
+            "DOTS_JSON is empty and USE_SINGLE_DOT_DEFAULTS is false. "
+            "No dots to animate. Either provide DOTS_JSON or set "
+            "USE_SINGLE_DOT_DEFAULTS to true."
+        )
     
     def construct(self) -> None:
         """Build and render the bouncing dots animation."""
@@ -93,18 +99,18 @@ class BouncingDots(Scene):
         self.camera.background_color = BLACK
         
         # Create boundary circle
-        circle = Circle(radius=cfg.circle_radius, color=BLUE, stroke_width=2)
+        circle = Circle(radius=cfg.CIRCLE_RADIUS, color=BLUE, stroke_width=2)
         self.add(circle)
         
         num_dots = len(self.dots_config)
-        collision_distance = cfg.circle_radius
+        collision_distance = cfg.CIRCLE_RADIUS
         
         # Validate that all dot starting positions are within the circle
         for i, dot_config in enumerate(self.dots_config):
             start_pos = dot_config["start_pos"]
             dot_radius = dot_config["radius"]
-            distance_from_center = np.linalg.norm(start_pos[:2] - cfg.circle_center[:2])
-            max_allowed_distance = cfg.circle_radius - dot_radius
+            distance_from_center = np.linalg.norm(start_pos[:2] - cfg.CIRCLE_CENTER[:2])
+            max_allowed_distance = cfg.CIRCLE_RADIUS - dot_radius
             
             if distance_from_center > max_allowed_distance:
                 raise ValueError(
@@ -139,17 +145,17 @@ class BouncingDots(Scene):
         current_time = 0.0
         bounce_count = 0
         
-        if cfg.debug:
+        if cfg.DEBUG:
             print(f"Starting simulation with {num_dots} dots...")
-            print(f"Circle radius: {cfg.circle_radius}")
+            print(f"Circle radius: {cfg.CIRCLE_RADIUS}")
         
         # Main physics simulation loop
-        while current_time < cfg.max_simulation_time:
+        while current_time < cfg.MAX_SIMULATION_TIME:
             # Update each dot
             for state in dot_states:
                 # Apply gravity and update position
-                state["vel"] = state["vel"] + cfg.gravity * cfg.simulation_dt
-                new_pos = state["pos"] + state["vel"] * cfg.simulation_dt
+                state["vel"] = state["vel"] + cfg.GRAVITY * cfg.SIMULATION_DT
+                new_pos = state["pos"] + state["vel"] * cfg.SIMULATION_DT
                 
                 # Check for collision with circle boundary
                 dot_collision_distance = collision_distance - state["radius"]
@@ -162,7 +168,7 @@ class BouncingDots(Scene):
                     bounce_times.append(current_time)
                     bounce_speeds.append(speed)
                     
-                    if cfg.debug:
+                    if cfg.DEBUG:
                         print(f"Wall bounce #{bounce_count} at t={current_time:.2f}s")
                     
                     # Collision response - reflect velocity off boundary
@@ -198,7 +204,7 @@ class BouncingDots(Scene):
                         bounce_times.append(current_time)
                         bounce_speeds.append(speed)
                         
-                        if cfg.debug:
+                        if cfg.DEBUG:
                             print(f"Dot collision #{bounce_count} between dot {i} and {j} at t={current_time:.2f}s")
                         
                         # Normal vector from j to i
@@ -224,7 +230,7 @@ class BouncingDots(Scene):
             for state in dot_states:
                 state["positions"].append(state["pos"].copy())
             
-            current_time += cfg.simulation_dt
+            current_time += cfg.SIMULATION_DT
             
             # Check stopping condition - all dots nearly stopped
             all_stopped = True
@@ -239,7 +245,7 @@ class BouncingDots(Scene):
                     state["positions"].extend([state["pos"].copy() for _ in range(30)])
                 break
         
-        if cfg.debug:
+        if cfg.DEBUG:
             print(f"\nSimulation complete:")
             print(f"  Total positions per dot: {len(dot_states[0]['positions'])}")
             print(f"  Total bounces: {bounce_count}")
@@ -247,7 +253,7 @@ class BouncingDots(Scene):
             print()
         
         # Audio generation
-        total_duration = (len(dot_states[0]["positions"]) - 1) * cfg.simulation_dt
+        total_duration = (len(dot_states[0]["positions"]) - 1) * cfg.SIMULATION_DT
         
         # Use audio_output_dir if set, otherwise fall back to media/audio
         if cfg.audio_output_dir:
@@ -260,19 +266,19 @@ class BouncingDots(Scene):
         
         # Generate ambient background sound
         ambient_duration = total_duration + 1
-        ambient_sound = generate_ambient_sound(duration=ambient_duration, sample_rate=cfg.sample_rate)
+        ambient_sound = generate_ambient_sound(duration=ambient_duration, sample_rate=cfg.SAMPLE_RATE)
         ambient_path = audio_dir / "ambient_multi.wav"
-        wavfile.write(ambient_path, cfg.sample_rate, ambient_sound)
+        wavfile.write(ambient_path, cfg.SAMPLE_RATE, ambient_sound)
         
         # Generate or load hit sounds
-        total_samples = int(ambient_duration * cfg.sample_rate)
+        total_samples = int(ambient_duration * cfg.SAMPLE_RATE)
         hit_audio = np.zeros(total_samples, dtype=np.float32)
         
-        use_generated_sound = cfg.use_generated_sound
-        sound_effect_path = sound_effect_dir / cfg.sound_effect
+        use_generated_sound = cfg.USE_GENERATED_SOUND
+        sound_effect_path = sound_effect_dir / cfg.SOUND_EFFECT
         
         if not use_generated_sound and not sound_effect_path.exists():
-            if cfg.debug:
+            if cfg.DEBUG:
                 print(f"Sound effect not found: {sound_effect_path}, using generated sound")
             use_generated_sound = True
         
@@ -286,14 +292,14 @@ class BouncingDots(Scene):
         
         if use_generated_sound:
             for i, (bounce_time, speed) in enumerate(zip(bounce_times, bounce_speeds)):
-                if i > 0 and (bounce_time - bounce_times[i-1]) < cfg.min_bounce_sound_interval:
+                if i > 0 and (bounce_time - bounce_times[i-1]) < cfg.MIN_BOUNCE_SOUND_INTERVAL:
                     continue
                 
                 volume = calculate_volume(speed)
                 frequency = 440 + (i % 3) * 100
-                hit_sound = generate_hit_sound(frequency=frequency, volume=volume, sample_rate=cfg.sample_rate)
+                hit_sound = generate_hit_sound(frequency=frequency, volume=volume, sample_rate=cfg.SAMPLE_RATE)
                 
-                start_sample = int(bounce_time * cfg.sample_rate)
+                start_sample = int(bounce_time * cfg.SAMPLE_RATE)
                 end_sample = min(start_sample + len(hit_sound), total_samples)
                 
                 if start_sample < total_samples:
@@ -305,9 +311,9 @@ class BouncingDots(Scene):
             if len(effect_sound.shape) > 1:
                 effect_sound = effect_sound.mean(axis=1)
             
-            if effect_sample_rate != cfg.sample_rate:
+            if effect_sample_rate != cfg.SAMPLE_RATE:
                 effect_duration = len(effect_sound) / effect_sample_rate
-                new_length = int(effect_duration * cfg.sample_rate)
+                new_length = int(effect_duration * cfg.SAMPLE_RATE)
                 effect_sound = np.interp(
                     np.linspace(0, len(effect_sound) - 1, new_length),
                     np.arange(len(effect_sound)),
@@ -321,11 +327,11 @@ class BouncingDots(Scene):
                 effect_sound = effect_sound / effect_max * 32767
             
             for i, (bounce_time, speed) in enumerate(zip(bounce_times, bounce_speeds)):
-                if i > 0 and (bounce_time - bounce_times[i-1]) < cfg.min_bounce_sound_interval:
+                if i > 0 and (bounce_time - bounce_times[i-1]) < cfg.MIN_BOUNCE_SOUND_INTERVAL:
                     continue
                 
                 volume = calculate_volume(speed, base=0.3, scale=0.7)
-                start_sample = int(bounce_time * cfg.sample_rate)
+                start_sample = int(bounce_time * cfg.SAMPLE_RATE)
                 end_sample = min(start_sample + len(effect_sound), total_samples)
                 
                 if start_sample < total_samples:
@@ -338,32 +344,32 @@ class BouncingDots(Scene):
             mixed_audio *= 32767 / max_val
         
         mixed_path = audio_dir / "bounce_multi_with_audio.wav"
-        wavfile.write(mixed_path, cfg.sample_rate, mixed_audio.astype(np.int16))
+        wavfile.write(mixed_path, cfg.SAMPLE_RATE, mixed_audio.astype(np.int16))
         
         # Animation setup
         time_tracker = ValueTracker(0)
         
-        if cfg.debug:
-            print(f"Animation: {total_duration:.2f}s, {len(dot_states[0]['positions'])} frames, trail={cfg.enable_trail}")
+        if cfg.DEBUG:
+            print(f"Animation: {total_duration:.2f}s, {len(dot_states[0]['positions'])} frames, trail={cfg.ENABLE_TRAIL}")
         
         # Create animated dot and trail getters for each dot
         def make_dot_getter(state):
             def get_dot_position() -> Dot:
-                index = min(int(time_tracker.get_value() / cfg.simulation_dt), len(state["positions"]) - 1)
+                index = min(int(time_tracker.get_value() / cfg.SIMULATION_DT), len(state["positions"]) - 1)
                 return Dot(point=state["positions"][index], radius=state["radius"], color=eval(state["color"]))
             return get_dot_position
         
         def make_trail_getter(state):
             def get_trail_path() -> VMobject:
-                index = min(int(time_tracker.get_value() / cfg.simulation_dt), len(state["positions"]) - 1)
+                index = min(int(time_tracker.get_value() / cfg.SIMULATION_DT), len(state["positions"]) - 1)
                 trail = VMobject(
                     stroke_color=eval(state["color"]),
-                    stroke_width=cfg.trail_width,
-                    stroke_opacity=cfg.trail_opacity
+                    stroke_width=cfg.TRAIL_WIDTH,
+                    stroke_opacity=cfg.TRAIL_OPACITY
                 )
                 
                 if index >= 2:
-                    trail_points = state["positions"][:index:cfg.trail_sample_interval]
+                    trail_points = state["positions"][:index:cfg.TRAIL_SAMPLE_INTERVAL]
                     if len(trail_points) > 1:
                         trail.set_points_as_corners(trail_points)
                 
@@ -375,7 +381,7 @@ class BouncingDots(Scene):
             self.remove(dot)
         
         # Add all trails first (behind dots) to fix z-ordering
-        if cfg.enable_trail:
+        if cfg.ENABLE_TRAIL:
             for state in dot_states:
                 animated_trail = always_redraw(make_trail_getter(state))
                 self.add(animated_trail)
