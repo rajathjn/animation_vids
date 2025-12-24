@@ -10,12 +10,6 @@ Note: These constants are internal and not exposed in AnimationConfig.
 # Velocity threshold below which a dot is considered stopped
 STOPPING_VELOCITY_THRESHOLD: float = 0.05
 
-# Distance from boundary to consider dot "on boundary"
-BOUNDARY_PROXIMITY_THRESHOLD: float = 0.1
-
-# Distance from bottom of circle to consider dot "near bottom"
-BOTTOM_PROXIMITY_THRESHOLD: float = 0.5
-
 # Number of extra frames to append after stopping condition is met
 STOPPING_FRAME_PADDING: int = 30
 

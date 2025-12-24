@@ -260,6 +260,16 @@ class AnimationConfig:
         return float(self._config.get("CIRCLE_RADIUS", 3.0))
     
     @property
+    def CIRCLE_COLOR(self) -> str:
+        """Get circle boundary color."""
+        return str(self._config.get("CIRCLE_COLOR", "BLUE"))
+    
+    @property
+    def CIRCLE_STROKE_WIDTH(self) -> float:
+        """Get circle boundary stroke width."""
+        return float(self._config.get("CIRCLE_STROKE_WIDTH", 2.0))
+    
+    @property
     def DOT_START_POS(self) -> np.ndarray:
         """Get dot starting position as numpy array."""
         return np.array([
