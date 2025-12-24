@@ -1,15 +1,14 @@
 # Animation Video Generator
 
-A configurable framework for generating bouncing ball physics animations using Manim.
+A clean, simple framework for generating bouncing ball physics animations using Manim's Python API directly - no subprocess calls or temp files needed.
 
 ## 🎯 Features
 
-- **Config-based setup**: Define animation parameters in `app.cfg` files (similar to manim.cfg)
+- **Direct rendering**: Uses manim's Python API - no subprocess or temp files
+- **Config-based setup**: Define animation parameters in `app.cfg` files
 - **Modular design**: Separate classes for single and multiple bouncing dots
-- **Easy generation**: Import, configure, and generate videos programmatically
-- **Organized output**: Each video stored in its own timestamped folder with metadata
-- **No file editing**: Generate multiple variations without editing source files
-- **Platform independent**: Uses subprocess to call manim, works on all platforms
+- **Simple API**: Import, configure, and render videos programmatically
+- **Organized output**: Each video stored in its own folder with metadata
 
 ## 📁 Project Structure
 
@@ -24,7 +23,6 @@ animation_vids/
 │   ├── bouncing_dots.py      # Multiple dots animation
 │   └── main.py               # Main orchestrator
 ├── outputs/                   # Generated videos (organized by name)
-├── extras/                    # Backup files and examples
 ├── example_single.py          # Example: Single dot
 ├── example_multiple_dots.py   # Example: Multiple dots
 ├── example_batch.py           # Example: Batch generation
@@ -34,19 +32,19 @@ animation_vids/
 
 ## 🚀 Quick Start
 
-### 1. Generate with Defaults
+### 1. Render with Defaults
 
 ```python
-from animations import generate_animation
+from animations import render_animation
 
-# Generate a simple bouncing dot
-generate_animation("BouncingDot", output_name="my_first_animation")
+# Render a simple bouncing dot
+render_animation("BouncingDot", output_name="my_first_animation")
 ```
 
-### 2. Generate with Custom Config
+### 2. Render with Custom Config
 
 ```python
-from animations import AnimationConfig, generate_animation
+from animations import AnimationConfig, render_animation
 
 # Create config and override settings
 config = AnimationConfig()
@@ -57,43 +55,42 @@ config.override(
     trail_color='YELLOW',
 )
 
-# Generate animation
-generate_animation(
+# Render animation
+render_animation(
     animation_name="BouncingDot",
     config=config,
     output_name="red_dot_with_trail",
-    quality="h"  # High quality
+    quality="high_quality"
 )
 ```
 
-### 3. Generate Multiple Dots
+### 3. Render Multiple Dots
 
 ```python
-import numpy as np
-from animations import AnimationConfig, generate_animation
+from animations import AnimationConfig, render_animation
 
-# Define dots
+# Define dots - use plain lists (automatically converted to numpy arrays)
 dots = [
     {
-        "initial_velocity": np.array([2, -5, 0]),
+        "initial_velocity": [2, -5, 0],
         "damping": 0.96,
         "radius": 0.22,
         "color": "YELLOW",
-        "start_pos": np.array([0, 1, 0])
+        "start_pos": [0, 1, 0]
     },
     {
-        "initial_velocity": np.array([-3, -6, 0]),
+        "initial_velocity": [-3, -6, 0],
         "damping": 0.97,
         "radius": 0.18,
         "color": "PURPLE",
-        "start_pos": np.array([1, -1, 0])
+        "start_pos": [1, -1, 0]
     },
 ]
 
 config = AnimationConfig()
 config.override(enable_trail=True)
 
-generate_animation(
+render_animation(
     animation_name="BouncingDots",
     config=config,
     dots=dots,
@@ -101,25 +98,23 @@ generate_animation(
 )
 ```
 
-### 4. Batch Generation
+### 4. Batch Rendering
 
 ```python
-from animations import generate_multiple
+from animations import render_batch, AnimationConfig
+
+config1 = AnimationConfig()
+config1.override(dot_color='BLUE')
+
+config2 = AnimationConfig()
+config2.override(dot_color='RED', enable_trail=True)
 
 animations = [
-    {
-        "animation_name": "BouncingDot",
-        "output_name": "simple_blue_dot",
-        "config": config1
-    },
-    {
-        "animation_name": "BouncingDot",
-        "output_name": "red_dot_fast",
-        "config": config2
-    },
+    {"animation_name": "BouncingDot", "output_name": "blue_dot", "config": config1},
+    {"animation_name": "BouncingDot", "output_name": "red_dot", "config": config2},
 ]
 
-generate_multiple(animations, quality='m', preview=False)
+render_batch(animations, quality='medium_quality')
 ```
 
 ## ⚙️ Configuration
@@ -167,63 +162,33 @@ debug = true
 | **Audio** | `sound_effect`, `use_generated_sound`, `min_bounce_sound_interval`, `sample_rate` |
 | **Debug** | `debug` |
 
+## 🎬 Quality Settings
+
+Quality presets (manim standard):
+- `'low_quality'` - 480p15 (fast preview)
+- `'medium_quality'` - 720p30 (default)
+- `'high_quality'` - 1080p60
+- `'production_quality'` - 1440p60
+- `'fourk_quality'` - 4K 60fps
+
 ## 📦 Output Structure
 
 Each generated animation creates an organized output folder:
 
 ```
 outputs/
-└── my_animation_20231218_143022/
-    ├── my_animation_20231218_143022.mp4  # Final video
-    ├── metadata.json                      # Configuration used
-    └── audio/                             # Audio files
+└── my_animation/
+    ├── my_animation.mp4          # Final video
+    ├── metadata.json             # Configuration used
+    ├── media/                    # Manim working files
+    └── audio/                    # Audio files
         ├── ambient.wav
         └── bounce_with_audio.wav
 ```
 
-## 🔧 Advanced Usage
-
-### Custom Caller Directory Config
-
-The config system automatically detects the directory of the Python script that imports the animation:
-
-```python
-# In /my_project/generate.py
-from animations import generate_animation
-
-# This will look for /my_project/app.cfg first
-generate_animation("BouncingDot")
-```
-
-### Programmatic Config Override
-
-```python
-config = AnimationConfig()
-config.override(
-    damping=0.95,
-    dot_color='RED',
-    initial_velocity_y=-10.0
-)
-```
-
-### Multiple Dots with Different Properties
-
-```python
-dots = [
-    {
-        "initial_velocity": np.array([i*0.5, -5-i*0.3, 0]),
-        "damping": 0.96 + i*0.01,
-        "radius": 0.15 + i*0.03,
-        "color": ["RED", "GREEN", "BLUE", "YELLOW"][i],
-        "start_pos": np.array([np.sin(i)*1.5, np.cos(i)*1.5, 0])
-    }
-    for i in range(4)
-]
-```
-
 ## 📝 Examples
 
-Run the example scripts to see the framework in action:
+Run the example scripts:
 
 ```bash
 python example_single.py
@@ -231,65 +196,53 @@ python example_multiple_dots.py
 python example_batch.py
 ```
 
-## 🎬 Quality Settings
+## 🛠️ API Reference
 
-- `'l'` - Low quality (480p15)
-- `'m'` - Medium quality (720p30) - default
-- `'h'` - High quality (1080p60)
+### `render_animation()`
 
-Note: The actual resolution is defined in `manim.cfg` (currently 1920x1080 @ 60fps)
-
-## 🛠️ Development
-
-### Adding New Animations
-
-1. Create a new animation class in `animations/`
-2. Make it accept `AnimationConfig` in `__init__`
-3. Add it to `animations/__init__.py` exports
-4. Update `main.py` to support the new animation name
-
-### Modifying the Configuration
-
-- Edit `animations/app.cfg` for new defaults
-- Add new parameters to `AnimationConfig` class in `config.py`
-- Update documentation
-
-## 📚 Migration from Old System
-
-Old workflow:
-```bash
-# 1. Edit bounce.py parameters
-# 2. Run manim
-manim bounce.py BouncingDot
-# 3. Manually rename video
+```python
+render_animation(
+    animation_name: str,           # "BouncingDot" or "BouncingDots"
+    config: AnimationConfig = None,
+    dots: List[Dict] = None,       # For BouncingDots only
+    output_name: str = None,       # Auto-generated if None
+    quality: str = "medium_quality",
+    preview: bool = False,         # Open video after render
+    output_dir: Path = None,       # Default: ./outputs
+) -> Path
 ```
 
-New workflow:
+### `render_batch()`
+
 ```python
-# All in one script
+render_batch(
+    animations: List[Dict],        # List of animation specs
+    **common_kwargs                # Applied to all animations
+) -> List[Path]
+```
+
+### `AnimationConfig`
+
+```python
 config = AnimationConfig()
-config.override(damping=0.95)
-generate_animation("BouncingDot", config=config, output_name="custom_dot")
+config.override(damping=0.95, dot_color='RED')
+config.to_dict()  # Get as plain dictionary
 ```
 
 ## 🐛 Troubleshooting
 
-**Issue**: Video not found after generation
-- Check `media/videos/` directory structure
-- Ensure manim completed successfully (check terminal output)
+**Issue**: Import errors
+- Ensure you're running from the project root
+- Check that `animations/__init__.py` exists
 
 **Issue**: Config not loading
 - Verify `app.cfg` is in the correct directory
 - Check INI syntax (use `=` not `:`)
 - Enable debug mode: `config.override(debug=True)`
 
-**Issue**: Import errors
-- Ensure you're running from the project root
-- Check that `animations/__init__.py` exists
-
 ## 📄 License
 
-MIT License - See LICENSE file for details
+MIT License
 
 ## 🙏 Acknowledgments
 

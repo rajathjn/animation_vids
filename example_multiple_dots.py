@@ -4,11 +4,10 @@ Example: Generate multiple bouncing dots animation with custom dot configuration
 This example demonstrates:
 1. Defining custom dot configurations
 2. Creating multiple dots with different properties
-3. Generating the animation with custom settings
+3. Rendering the animation directly
 """
 
-import numpy as np
-from animations import AnimationConfig, generate_animation
+from animations import AnimationConfig, render_animation
 
 
 def main():
@@ -17,46 +16,46 @@ def main():
     
     # Override global settings
     config.override(
-        ENABLE_TRAIL=True,
-        TRAIL_WIDTH=2.0,
-        TRAIL_OPACITY=0.7,
-        DEBUG=False,
+        enable_trail=False,
+        trail_width=2.0,
+        trail_opacity=0.7,
+        debug=False,
     )
     
     # Define custom dots configuration
+    # Note: You can use plain lists instead of np.array - they'll be converted automatically
     dots = [
         {
-            "initial_velocity": np.array([2, -5, 0]),
-            "damping": 0.99,
-            "radius": 0.32,
+            "initial_velocity": [2, -5, 0],
+            "damping": 0.95,
+            "radius": 0.30,
             "color": "YELLOW",
-            "start_pos": np.array([0, 1, 0])
+            "start_pos": [0, 1, 0]
         },
         {
-            "initial_velocity": np.array([-3, -6, 0]),
+            "initial_velocity": [-10, -1, 0],
             "damping": 0.98,
-            "radius": 0.5,
+            "radius": 0.20,
             "color": "PURPLE",
-            "start_pos": np.array([1, -1, 0])
+            "start_pos": [1, -1, 0]
         },
         {
-            "initial_velocity": np.array([10, -1, 0]),
+            "initial_velocity": [10, -1, 0],
             "damping": 0.99,
             "radius": 0.20,
             "color": "ORANGE",
-            "start_pos": np.array([-1, 0.5, 0])
+            "start_pos": [-1, 0.5, 0]
         },
     ]
     
-    # Generate the animation
-    output_path = generate_animation(
+    # Render the animation
+    output_path = render_animation(
         animation_name="BouncingDots",
         config=config,
         dots=dots,
         output_name="three_colorful_dots",
-        quality="h",
+        quality="high_quality",
         preview=False,
-        organize_output=True
     )
     
     print(f"\n✓ Animation saved to: {output_path}")

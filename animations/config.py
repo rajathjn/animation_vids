@@ -283,6 +283,10 @@ class AnimationConfig:
         """Check if debug mode is enabled."""
         return self.config['DEBUG']
     
+    def to_dict(self) -> dict:
+        """Return config as a plain dictionary for serialization."""
+        return self.config.copy()
+    
     def __repr__(self) -> str:
         """String representation of config."""
         return f"AnimationConfig({len(self.config)} settings)"

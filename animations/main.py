@@ -1,306 +1,244 @@
 """
 Main orchestrator for generating animation videos.
 
-This module provides a simple interface to configure and generate multiple
-animations without manually editing source files or renaming outputs.
+This module provides a simple interface to configure and render manim animations
+directly without subprocess calls or temp files.
 
 Usage:
-    from animations.main import generate_animation
+    from animations import render_animation, AnimationConfig
     
-    # Generate with defaults
-    generate_animation("BouncingDot", output_name="my_bounce_video")
+    # Simple render with defaults
+    render_animation("BouncingDot", output_name="my_bounce")
     
-    # Generate with custom config
-    from animations.config import AnimationConfig
+    # Render with custom config
     config = AnimationConfig()
     config.override(damping=0.95, dot_color='RED', enable_trail=True)
-    generate_animation("BouncingDot", config=config, output_name="red_dot_with_trail")
+    render_animation("BouncingDot", config=config, output_name="red_dot")
     
-    # Generate multiple dots
+    # Render multiple dots
     dots = [
-        {"initial_velocity": np.array([2, -5, 0]), "damping": 0.96, "radius": 0.2, 
-         "color": "YELLOW", "start_pos": np.array([0, 1, 0])},
-        {"initial_velocity": np.array([-3, -6, 0]), "damping": 0.97, "radius": 0.18, 
-         "color": "PURPLE", "start_pos": np.array([1, -1, 0])},
+        {"initial_velocity": [2, -5, 0], "damping": 0.96, "radius": 0.2, 
+         "color": "YELLOW", "start_pos": [0, 1, 0]},
+        {"initial_velocity": [-3, -6, 0], "damping": 0.97, "radius": 0.18, 
+         "color": "PURPLE", "start_pos": [1, -1, 0]},
     ]
-    generate_animation("BouncingDots", dots=dots, output_name="two_dots_custom")
+    render_animation("BouncingDots", dots=dots, output_name="multi_dots")
 """
 
-import subprocess
-import shutil
 import json
+import shutil
 from pathlib import Path
 from datetime import datetime
-from typing import Optional, List, Dict, Any, TYPE_CHECKING
-import tempfile
+from typing import Optional, List, Dict, Any
+from configparser import ConfigParser
 import numpy as np
 
-if TYPE_CHECKING:
-    from .config import AnimationConfig
+from manim import config as manim_config, tempconfig
+
+from .config import AnimationConfig
+from .bouncing_dot import BouncingDot
+from .bouncing_dots import BouncingDots
 
 
-def generate_animation(
+# Map animation names to classes
+ANIMATION_CLASSES = {
+    "BouncingDot": BouncingDot,
+    "BouncingDots": BouncingDots,
+}
+
+
+def render_animation(
     animation_name: str,
-    config: Optional['AnimationConfig'] = None,
+    config: Optional[AnimationConfig] = None,
     dots: Optional[List[Dict[str, Any]]] = None,
     output_name: Optional[str] = None,
-    quality: str = "m",
+    quality: str = "medium_quality",
     preview: bool = False,
-    organize_output: bool = True
+    output_dir: Optional[Path] = None,
 ) -> Path:
     """
-    Generate an animation video using manim.
+    Render an animation directly using manim's Python API.
     
     Args:
         animation_name: Name of the animation class ("BouncingDot" or "BouncingDots")
         config: Optional AnimationConfig instance with custom settings
         dots: Optional list of dot configurations (only for BouncingDots)
-        output_name: Optional custom name for the output (defaults to animation_name_timestamp)
-        quality: Manim quality flag: 'l' (low), 'm' (medium), 'h' (high) (default: 'm')
-        preview: Whether to preview the video after generation (default: False)
-        organize_output: Whether to organize output into a dedicated folder (default: True)
+        output_name: Optional custom name for the output file
+        quality: Manim quality preset: 'low_quality', 'medium_quality', 
+                 'high_quality', 'production_quality', or 'fourk_quality'
+        preview: Whether to open the video after rendering
+        output_dir: Custom output directory (default: ./outputs)
     
     Returns:
-        Path to the generated video file (or output folder if organize_output=True)
+        Path to the generated video file
     
     Raises:
         ValueError: If animation_name is not recognized
-        RuntimeError: If manim rendering fails
     """
     # Validate animation name
-    valid_animations = ["BouncingDot", "BouncingDots"]
-    if animation_name not in valid_animations:
-        raise ValueError(f"Unknown animation: {animation_name}. Valid options: {valid_animations}")
-    
-    # Import here to avoid circular imports
-    from .config import AnimationConfig
+    if animation_name not in ANIMATION_CLASSES:
+        raise ValueError(
+            f"Unknown animation: {animation_name}. "
+            f"Valid options: {list(ANIMATION_CLASSES.keys())}"
+        )
     
     # Create config if not provided
     if config is None:
         config = AnimationConfig()
     
-    # Generate output name with timestamp
+    # Generate output name with timestamp if not provided
     if output_name is None:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         output_name = f"{animation_name}_{timestamp}"
     
-    # Create output folder first (so audio can be saved directly there)
-    outputs_dir = Path.cwd() / "outputs"
-    outputs_dir.mkdir(exist_ok=True)
-    output_folder = outputs_dir / output_name
-    output_folder.mkdir(exist_ok=True)
+    # Setup output directory
+    if output_dir is None:
+        output_dir = Path.cwd() / "outputs"
+    output_dir.mkdir(parents=True, exist_ok=True)
     
-    # Create audio subfolder
-    audio_output_dir = output_folder / "audio"
-    audio_output_dir.mkdir(exist_ok=True)
+    # Create subfolder for this animation
+    animation_output_dir = output_dir / output_name
+    animation_output_dir.mkdir(exist_ok=True)
+    
+    # Setup audio output directory
+    audio_dir = animation_output_dir / "audio"
+    audio_dir.mkdir(exist_ok=True)
+    config.audio_output_dir = str(audio_dir)
     
     print(f"\n{'='*60}")
-    print(f"Generating animation: {animation_name}")
-    print(f"Output name: {output_name}")
+    print(f"Rendering: {animation_name}")
+    print(f"Output: {output_name}")
     print(f"Quality: {quality}")
-    print(f"Renderer: cairo")
     print(f"{'='*60}\n")
     
-    # Create a temporary Python file that will be passed to manim
-    # This file imports the animation class and instantiates it with the config
-    temp_dir = Path(tempfile.gettempdir()) / "animation_vids_temp"
-    temp_dir.mkdir(exist_ok=True)
+    # Convert dots list to use numpy arrays if provided
+    if dots is not None:
+        dots = _prepare_dots_config(dots)
     
-    temp_script = temp_dir / f"{animation_name.lower()}_temp.py"
-    
-    # Get the actual project root (where animations folder is)
+    # Load manim.cfg from project root if it exists to respect user settings
     project_root = Path.cwd()
+    manim_cfg_path = project_root / "manim.cfg"
+    manim_settings = {
+        "preview": preview,
+        "output_file": output_name,
+    }
     
-    # Build the temporary script content
-    script_content = f"""
-from manim import *
-import numpy as np
-import sys
-from pathlib import Path
-
-# Add project root to path
-sys.path.insert(0, r'{project_root}')
-
-from animations.config import AnimationConfig
-from animations.{animation_name.lower().replace('bouncing', 'bouncing_')} import {animation_name}
-
-# Create config
-config = AnimationConfig()
-
-# Set audio output directory
-config.audio_output_dir = r'{audio_output_dir}'
-
-# Override config values
-"""
+    if manim_cfg_path.exists():
+        # Read manim.cfg and apply settings from it
+        parser = ConfigParser()
+        parser.read(manim_cfg_path)
+        
+        if parser.has_section('CLI'):
+            # Apply CLI settings, respecting user's dimensions
+            for key, value in parser.items('CLI'):
+                if key == 'frame_rate':
+                    manim_settings['frame_rate'] = int(value)
+                elif key == 'pixel_height':
+                    manim_settings['pixel_height'] = int(value)
+                elif key == 'pixel_width':
+                    manim_settings['pixel_width'] = int(value)
+                elif key == 'background_color':
+                    manim_settings['background_color'] = value
+                elif key == 'background_opacity':
+                    manim_settings['background_opacity'] = float(value)
+                elif key == 'frame_width':
+                    manim_settings['frame_width'] = float(value)
+                elif key == 'frame_height':
+                    manim_settings['frame_height'] = float(value)
+                elif key == 'disable_caching':
+                    manim_settings['disable_caching'] = value.lower() == 'true'
+                elif key == 'flush_cache':
+                    manim_settings['flush_cache'] = value.lower() == 'true'
+    else:
+        # Fallback to quality preset if no manim.cfg
+        manim_settings["quality"] = quality
     
-    # Add config overrides to the script
-    for key, value in config.config.items():
-        if isinstance(value, str):
-            script_content += f"config.config['{key}'] = '{value}'\n"
+    # Render the scene using manim's tempconfig context manager
+    with tempconfig(manim_settings):
+        # Create the scene instance
+        scene_class = ANIMATION_CLASSES[animation_name]
+        
+        if animation_name == "BouncingDots" and dots is not None:
+            scene = scene_class(config=config, dots=dots)
         else:
-            script_content += f"config.config['{key}'] = {value}\n"
+            scene = scene_class(config=config)
+        
+        # Render the scene
+        scene.render()
+        
+        # Get the output video path from manim
+        video_path = Path(scene.renderer.file_writer.movie_file_path)
     
-    # Add scene class instantiation
-    if animation_name == "BouncingDots" and dots is not None:
-        # Convert numpy arrays to lists for JSON serialization
+    # Copy video to our organized output folder
+    final_video_path = animation_output_dir / f"{output_name}.mp4"
+    if video_path.exists():
+        if video_path != final_video_path:
+            shutil.copy2(str(video_path), str(final_video_path))
+    else:
+        raise RuntimeError(f"Video was not created at {video_path}")
+    
+    # Save metadata
+    _save_metadata(
+        animation_output_dir,
+        animation_name=animation_name,
+        output_name=output_name,
+        quality=quality,
+        config=config,
+        dots=dots,
+    )
+    
+    print(f"\n{'='*60}")
+    print(f"✓ Rendering complete!")
+    print(f"  Video: {final_video_path}")
+    print(f"  Folder: {animation_output_dir}")
+    print(f"{'='*60}\n")
+    
+    return final_video_path
+
+
+def _prepare_dots_config(dots: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Convert dot config lists to numpy arrays."""
+    prepared = []
+    for dot in dots:
+        dot_copy = dot.copy()
+        for key in ['initial_velocity', 'start_pos']:
+            if key in dot_copy:
+                value = dot_copy[key]
+                if isinstance(value, list):
+                    dot_copy[key] = np.array(value)
+        prepared.append(dot_copy)
+    return prepared
+
+
+def _save_metadata(
+    output_dir: Path,
+    animation_name: str,
+    output_name: str,
+    quality: str,
+    config: AnimationConfig,
+    dots: Optional[List[Dict[str, Any]]] = None,
+) -> None:
+    """Save animation metadata to JSON."""
+    metadata = {
+        "animation_name": animation_name,
+        "output_name": output_name,
+        "timestamp": datetime.now().isoformat(),
+        "quality": quality,
+        "config": config.to_dict(),
+    }
+    
+    if dots is not None:
+        # Convert numpy arrays for JSON serialization
         dots_serializable = []
         for dot in dots:
-            dot_copy = dot.copy()
-            for key in ['initial_velocity', 'start_pos']:
-                if key in dot_copy and isinstance(dot_copy[key], np.ndarray):
-                    dot_copy[key] = dot_copy[key].tolist()
+            dot_copy = {}
+            for key, value in dot.items():
+                if isinstance(value, np.ndarray):
+                    dot_copy[key] = value.tolist()
+                else:
+                    dot_copy[key] = value
             dots_serializable.append(dot_copy)
-        
-        dots_json = json.dumps(dots_serializable)
-        script_content += f"""
-# Reconstruct dots config from JSON
-import json
-dots_data = json.loads('{dots_json}')
-for dot in dots_data:
-    for key in ['initial_velocity', 'start_pos']:
-        if key in dot:
-            dot[key] = np.array(dot[key])
-
-class {animation_name}Scene({animation_name}):
-    def __init__(self, renderer=None, **kwargs):
-        super().__init__(config=config, dots=dots_data, **kwargs)
-"""
-    else:
-        script_content += f"""
-class {animation_name}Scene({animation_name}):
-    def __init__(self, renderer=None, **kwargs):
-        super().__init__(config=config, **kwargs)
-"""
+        metadata["dots"] = dots_serializable
     
-    # Write temp script
-    temp_script.write_text(script_content, encoding='utf-8')
-    
-    # Define output video path
-    final_video = output_folder / f"{output_name}.mp4"
-    
-    try:
-        # Build manim command with direct output
-        # Note: -o flag works with Cairo renderer, so we use that instead of OpenGL
-        cmd = [
-            "manim",
-            #f"-q{quality}",
-            "-o", str(final_video),
-            str(temp_script),
-            f"{animation_name}Scene",
-        ]
-        
-        if preview:
-            cmd.insert(1, "-p")
-        
-        print(f"Running manim (this may take a few minutes)...\n")
-        print(f"Quality: {quality} | Scene: {animation_name}Scene\n")
-        print("-" * 60 + "\n")
-        
-        # Run manim with direct output to terminal for smooth progress bars
-        result = subprocess.run(
-            cmd,
-            cwd=str(Path.cwd())
-        )
-        
-        result_returncode = result.returncode
-        print("\n" + "-" * 60 + "\n")
-        
-        if result_returncode != 0:
-            raise RuntimeError(f"Manim rendering failed with return code {result_returncode}")
-        
-        print("[OK] Rendering complete!\n")
-        
-        # Verify video was created
-        if not final_video.exists():
-            raise RuntimeError(f"Video file was not created at {final_video}")
-        
-        print(f"[OK] Video saved: {final_video.name}")
-        
-        if organize_output:
-            # Save metadata
-            print("[*] Saving metadata...")
-            metadata = {
-                "animation_name": animation_name,
-                "output_name": output_name,
-                "timestamp": datetime.now().isoformat(),
-                "quality": quality,
-                "renderer": "cairo",
-                "config": config.config,
-            }
-            
-            if dots is not None:
-                metadata["dots"] = dots_serializable
-            
-            metadata_file = output_folder / "metadata.json"
-            metadata_file.write_text(json.dumps(metadata, indent=2), encoding='utf-8')
-            print(f"    [OK] Metadata saved\n")
-            
-            print(f"[OK] Output organized in: {output_folder}")
-            print(f"     Video: {final_video.name}")
-            print(f"     Metadata: metadata.json")
-            if audio_output_dir.exists() and any(audio_output_dir.glob("*.wav")):
-                print(f"     Audio: audio/")
-            
-            return output_folder
-        else:
-            return final_video
-            
-    finally:
-        # Cleanup temp script
-        if temp_script.exists():
-            temp_script.unlink()
-        
-        print(f"\n{'='*60}")
-        print(f"Animation generation complete!")
-        print(f"{'='*60}\n")
-
-
-# Convenience function for batch generation
-def generate_multiple(animations: List[Dict[str, Any]], **common_kwargs) -> List[Path]:
-    """
-    Generate multiple animations in sequence.
-    
-    Args:
-        animations: List of animation specifications, each dict containing:
-                   - animation_name: str
-                   - config: Optional AnimationConfig
-                   - dots: Optional list (for BouncingDots)
-                   - output_name: Optional str
-        **common_kwargs: Common arguments applied to all animations (quality, preview, etc.)
-    
-    Returns:
-        List of output paths (videos or folders)
-    
-    Example:
-        animations = [
-            {"animation_name": "BouncingDot", "output_name": "dot_1"},
-            {"animation_name": "BouncingDot", "output_name": "dot_2", 
-             "config": config_with_trail},
-        ]
-        generate_multiple(animations, quality='h', preview=False)
-    """
-    results = []
-    
-    for i, anim_spec in enumerate(animations, 1):
-        print(f"\n{'#'*60}")
-        print(f"# Animation {i}/{len(animations)}")
-        print(f"{'#'*60}")
-        
-        # Merge animation-specific and common kwargs
-        kwargs = {**common_kwargs, **anim_spec}
-        animation_name = kwargs.pop("animation_name")
-        
-        try:
-            result = generate_animation(animation_name, **kwargs)
-            results.append(result)
-        except Exception as e:
-            print(f"✗ Failed to generate {animation_name}: {e}")
-            results.append(None)
-    
-    # Summary
-    print(f"\n{'='*60}")
-    print(f"Batch generation complete!")
-    print(f"  Successful: {sum(1 for r in results if r is not None)}/{len(animations)}")
-    print(f"{'='*60}\n")
-    
-    return results
+    metadata_file = output_dir / "metadata.json"
+    metadata_file.write_text(json.dumps(metadata, indent=2), encoding='utf-8')

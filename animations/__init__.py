@@ -4,12 +4,12 @@
 from .config import AnimationConfig
 from .bouncing_dot import BouncingDot
 from .bouncing_dots import BouncingDots
-from .main import generate_animation, generate_multiple
+from .main import render_animation, render_batch
 
 __all__ = [
     'AnimationConfig',
     'BouncingDot',
     'BouncingDots',
-    'generate_animation',
-    'generate_multiple',
+    'render_animation',
+    'render_batch',
 ]
