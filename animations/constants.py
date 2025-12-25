@@ -10,6 +10,9 @@ Note: These constants are internal and not exposed in AnimationConfig.
 # Velocity threshold below which a dot is considered stopped
 STOPPING_VELOCITY_THRESHOLD: float = 0.05
 
+# Minimum bounce speed to generate a sound (below this, bounce is silent)
+MIN_BOUNCE_SPEED_FOR_SOUND: float = 0.3
+
 # Number of extra frames to append after stopping condition is met
 STOPPING_FRAME_PADDING: int = 30
 

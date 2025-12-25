@@ -15,6 +15,7 @@ from scipy.io import wavfile
 
 from .audio_utils import generate_ambient_sound, generate_hit_sound
 from .config import AnimationConfig
+from .constants import MIN_BOUNCE_SPEED_FOR_SOUND
 from .physics import BounceEvent
 
 
@@ -187,11 +188,32 @@ class AudioMixer:
         """Add procedurally generated hit sounds to audio track."""
         cfg = self.config
         min_interval = cfg.MIN_BOUNCE_SOUND_INTERVAL
+        
+        # Track last sound time per dot (for multi-dot scenarios)
+        # Key: dot_index or 'wall', Value: last bounce time
+        last_sound_time: dict[int | str, float] = {}
 
-        for i, (bounce_time, speed) in enumerate(zip(bounce_times, bounce_speeds)):
-            # Skip if too close to previous bounce
-            if i > 0 and (bounce_time - bounce_times[i - 1]) < min_interval:
+        for i, (event, speed) in enumerate(zip(self.bounce_events, bounce_speeds)):
+            bounce_time = event.time
+            
+            # Skip very low-speed bounces (ball settling/stopped)
+            if speed < MIN_BOUNCE_SPEED_FOR_SOUND:
                 continue
+            
+            # Determine which dot(s) are involved
+            if event.bounce_type == "wall":
+                # Wall bounce - use dot index as key
+                dot_key = event.dot_indices[0] if event.dot_indices else 0
+            else:
+                # Dot-to-dot collision - use tuple of both dots
+                dot_key = event.dot_indices
+            
+            # Check if this specific dot/collision has sounded recently
+            if dot_key in last_sound_time:
+                if (bounce_time - last_sound_time[dot_key]) < min_interval:
+                    continue
+            
+            last_sound_time[dot_key] = bounce_time
 
             # Calculate volume based on speed
             volume = self._calculate_volume(speed, min_speed, speed_range, base=0.2, scale=0.8)
@@ -252,11 +274,31 @@ class AudioMixer:
         if effect_max > 0:
             effect_sound = effect_sound / effect_max * 32767
 
+        # Track last sound time per dot (for multi-dot scenarios)
+        last_sound_time: dict[int | str, float] = {}
+
         # Add hit sounds at each bounce
-        for i, (bounce_time, speed) in enumerate(zip(bounce_times, bounce_speeds)):
-            # Skip if too close to previous bounce
-            if i > 0 and (bounce_time - bounce_times[i - 1]) < min_interval:
+        for i, (event, speed) in enumerate(zip(self.bounce_events, bounce_speeds)):
+            bounce_time = event.time
+            
+            # Skip very low-speed bounces (ball settling/stopped)
+            if speed < MIN_BOUNCE_SPEED_FOR_SOUND:
                 continue
+            
+            # Determine which dot(s) are involved
+            if event.bounce_type == "wall":
+                # Wall bounce - use dot index as key
+                dot_key = event.dot_indices[0] if event.dot_indices else 0
+            else:
+                # Dot-to-dot collision - use tuple of both dots
+                dot_key = event.dot_indices
+            
+            # Check if this specific dot/collision has sounded recently
+            if dot_key in last_sound_time:
+                if (bounce_time - last_sound_time[dot_key]) < min_interval:
+                    continue
+            
+            last_sound_time[dot_key] = bounce_time
 
             volume = self._calculate_volume(speed, min_speed, speed_range, base=0.3, scale=0.7)
             start_sample = int(bounce_time * sample_rate)
