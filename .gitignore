@@ -34,3 +34,6 @@ outputs/
 
 # Keep example config as reference
 !app.cfg.example
+
+# builder files
+example*.py
