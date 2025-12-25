@@ -145,7 +145,7 @@ class AnimationConfig:
                 TRAIL_COLOR (str): Trail color name
                 TRAIL_WIDTH (float): Trail stroke width
                 TRAIL_OPACITY (float): Trail opacity (0-1)
-                TRAIL_SAMPLE_INTERVAL (int): Frames between trail samples
+                TRAIL_FADING_TIME (float): Trail fading time in seconds
             
             Sound effect:
                 SOUND_EFFECT (str): Sound effect filename
@@ -337,14 +337,22 @@ class AnimationConfig:
         return float(self._config.get("TRAIL_WIDTH", 1.0))
     
     @property
-    def TRAIL_OPACITY(self) -> float:
-        """Get trail opacity."""
-        return float(self._config.get("TRAIL_OPACITY", 0.6))
+    def TRAIL_OPACITY(self) -> float | list[float]:
+        """Get trail opacity (can be float or list of floats for gradient)."""
+        value = self._config.get("TRAIL_OPACITY", 0.6)
+        if isinstance(value, (list, tuple)):
+            return value
+        try:
+            return json.loads(value)
+        except (json.JSONDecodeError, TypeError):
+            return float(value)
     
     @property
-    def TRAIL_SAMPLE_INTERVAL(self) -> int:
-        """Get trail sampling interval."""
-        return int(self._config.get("TRAIL_SAMPLE_INTERVAL", 3))
+    def TRAIL_FADING_TIME(self) -> float:
+        """Get trail fading time in seconds."""
+        if self._config.get("TRAIL_FADING_TIME") == "None":
+            return None
+        return float(self._config.get("TRAIL_FADING_TIME", 2.0))
     
     @property
     def SOUND_EFFECT(self) -> str:

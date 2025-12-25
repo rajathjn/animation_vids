@@ -10,8 +10,8 @@ from manim import (
     Circle,
     Dot,
     Scene,
+    TracedPath,
     ValueTracker,
-    VMobject,
     always_redraw,
     linear,
 )
@@ -139,28 +139,19 @@ class BouncingDot(Scene):
             index = min(int(time_tracker.get_value() / cfg.SIMULATION_DT), len(positions) - 1)
             return Dot(point=positions[index], radius=cfg.DOT_RADIUS, color=cfg.DOT_COLOR)
         
-        def get_trail_path() -> VMobject:
-            """Get trail path at current animation time."""
-            index = min(int(time_tracker.get_value() / cfg.SIMULATION_DT), len(positions) - 1)
-            trail = VMobject(
-                stroke_color=cfg.TRAIL_COLOR,
-                stroke_width=cfg.TRAIL_WIDTH,
-                stroke_opacity=cfg.TRAIL_OPACITY,
-            )
-            
-            if index >= 2:
-                trail_points = positions[:index:cfg.TRAIL_SAMPLE_INTERVAL]
-                if len(trail_points) > 1:
-                    trail.set_points_as_corners(trail_points)
-            
-            return trail
-        
         # Replace static dot with animated version
         self.remove(dot)
         animated_dot = always_redraw(get_dot_position)
         
         if cfg.ENABLE_TRAIL:
-            self.add(always_redraw(get_trail_path), animated_dot)
+            trail = TracedPath(
+                animated_dot.get_center,
+                stroke_color=cfg.TRAIL_COLOR,
+                stroke_width=cfg.TRAIL_WIDTH,
+                stroke_opacity=cfg.TRAIL_OPACITY,
+                dissipating_time=cfg.TRAIL_FADING_TIME,
+            )
+            self.add(trail, animated_dot)
         else:
             self.add(animated_dot)
         

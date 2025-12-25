@@ -11,8 +11,8 @@ from manim import (
     Circle,
     Dot,
     Scene,
+    TracedPath,
     ValueTracker,
-    VMobject,
     always_redraw,
     linear,
 )
@@ -194,39 +194,33 @@ class BouncingDots(Scene):
         if cfg.DEBUG:
             print(f"Animation: {total_duration:.2f}s, {len(positions_per_dot[0])} frames, trail={cfg.ENABLE_TRAIL}")
         
-        # Create animated dot and trail getters for each dot
+        # Create animated dot getters for each dot
         def make_dot_getter(state: DotState, positions: list[NDArray[np.floating]]):
             def get_dot_position() -> Dot:
                 index = min(int(time_tracker.get_value() / cfg.SIMULATION_DT), len(positions) - 1)
                 return Dot(point=positions[index], radius=state["radius"], color=state["color"])
             return get_dot_position
         
-        def make_trail_getter(state: DotState, positions: list[NDArray[np.floating]]):
-            def get_trail_path() -> VMobject:
-                index = min(int(time_tracker.get_value() / cfg.SIMULATION_DT), len(positions) - 1)
-                trail = VMobject(
-                    stroke_color=state["color"],
-                    stroke_width=cfg.TRAIL_WIDTH,
-                    stroke_opacity=cfg.TRAIL_OPACITY,
-                )
-                
-                if index >= 2:
-                    trail_points = positions[:index:cfg.TRAIL_SAMPLE_INTERVAL]
-                    if len(trail_points) > 1:
-                        trail.set_points_as_corners(trail_points)
-                
-                return trail
-            return get_trail_path
+        # Create animated dots and trails
+        animated_dots = []
+        for state, positions in zip(dot_states, positions_per_dot):
+            animated_dot = always_redraw(make_dot_getter(state, positions))
+            animated_dots.append(animated_dot)
         
         # Add all trails first (behind dots) to fix z-ordering
         if cfg.ENABLE_TRAIL:
-            for state, positions in zip(dot_states, positions_per_dot):
-                animated_trail = always_redraw(make_trail_getter(state, positions))
-                self.add(animated_trail)
+            for animated_dot, state in zip(animated_dots, dot_states):
+                trail = TracedPath(
+                    animated_dot.get_center,
+                    stroke_color=state["color"],
+                    stroke_width=cfg.TRAIL_WIDTH,
+                    stroke_opacity=cfg.TRAIL_OPACITY,
+                    dissipating_time=cfg.TRAIL_FADING_TIME,
+                )
+                self.add(trail)
         
         # Then add all dots on top
-        for state, positions in zip(dot_states, positions_per_dot):
-            animated_dot = always_redraw(make_dot_getter(state, positions))
+        for animated_dot in animated_dots:
             self.add(animated_dot)
         
         # Play animation with audio
