@@ -185,24 +185,23 @@ def _save_metadata(
 
 
 def _serialize_config(config_dict: dict[str, Any]) -> dict[str, Any]:
-    """Serialize config dict, converting numpy arrays to lists."""
+    """Serialize config dict, converting numpy arrays and ManimColor objects to JSON-serializable types."""
+    def convert_value(value):
+        if isinstance(value, np.ndarray):
+            return value.tolist()
+        elif isinstance(value, dict):
+            return {k: convert_value(v) for k, v in value.items()}
+        elif isinstance(value, list):
+            return [convert_value(item) for item in value]
+        else:
+            # Convert any non-serializable type (ManimColor, etc.) to string
+            try:
+                json.dumps(value)
+                return value
+            except (TypeError, ValueError):
+                return str(value)
+    
     result = {}
     for section, values in config_dict.items():
-        if isinstance(values, dict):
-            result[section] = {}
-            for key, value in values.items():
-                if isinstance(value, np.ndarray):
-                    result[section][key] = value.tolist()
-                elif isinstance(value, list):
-                    # Handle nested lists (like DOTS_JSON)
-                    result[section][key] = [
-                        {k: v.tolist() if isinstance(v, np.ndarray) else v for k, v in item.items()}
-                        if isinstance(item, dict)
-                        else item
-                        for item in value
-                    ]
-                else:
-                    result[section][key] = value
-        else:
-            result[section] = values
+        result[section] = convert_value(values)
     return result
