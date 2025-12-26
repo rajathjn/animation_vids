@@ -360,7 +360,7 @@ class AnimationConfig:
     @property
     def TRAIL_FADING_TIME(self) -> float:
         """Get trail fading time in seconds."""
-        if self._config.get("TRAIL_FADING_TIME") == "None":
+        if self._config.get("TRAIL_FADING_TIME") == "None" or self._config.get("TRAIL_FADING_TIME") is None:
             return None
         return float(self._config.get("TRAIL_FADING_TIME", 2.0))
 
