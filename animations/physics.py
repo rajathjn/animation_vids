@@ -397,30 +397,41 @@ class PhysicsSimulation:
         """
         Check if all dots have effectively stopped.
 
+        A dot is considered stopped when:
+        1. Its speed is below the threshold
+        2. It is resting on the circle boundary (not mid-air)
+
         Args:
             current_time: Current simulation time
 
         Returns:
             True if simulation should stop, False otherwise
         """
+        # Too early to stop
         if current_time < MIN_SIMULATION_TIME_BEFORE_STOP:
             return False
+        
+        is_single_dot = len(self.dot_states) == 1
 
         for state in self.dot_states:
             speed = float(np.linalg.norm(state["vel"]))
-
-            # For single dot, also check position constraints
-            if len(self.dot_states) == 1:
+            
+            # Return if speed is above threshold
+            if speed >= STOPPING_VELOCITY_THRESHOLD:
+                return False
+            
+            # check on boundary, if more than one dot, skip this check
+            if is_single_dot:
+                # Must be on the boundary (not floating mid-air)
                 dot_collision_distance = self.circle_radius - state["radius"]
                 distance_from_center = float(np.linalg.norm(state["pos"][:2]))
-                is_near_bottom = state["pos"][1] < -dot_collision_distance + state["radius"]
-                is_on_boundary = distance_from_center > dot_collision_distance - state["radius"]
 
-                if speed >= STOPPING_VELOCITY_THRESHOLD or not (is_near_bottom and is_on_boundary):
-                    return False
-            else:
-                # For multiple dots, just check velocity
-                if speed >= STOPPING_VELOCITY_THRESHOLD:
+                # Allow small tolerance for "on boundary" check
+                boundary_tolerance = state["radius"] * 0.5
+                # distance from center is less than this means dot is not touching boundary
+                is_not_on_boundary = distance_from_center < (dot_collision_distance - boundary_tolerance)
+
+                if is_not_on_boundary:
                     return False
 
         return True
