@@ -17,6 +17,7 @@ from manim import (
     ValueTracker,
     always_redraw,
     linear,
+    Mobject
 )
 from numpy.typing import NDArray
 
@@ -209,7 +210,7 @@ class BouncingDots(Scene):
             return get_dot_position
 
         # Create animated dots and trails
-        animated_dots = []
+        animated_dots: list[Mobject] = []
         for state, positions in zip(dot_states, positions_per_dot):
             animated_dot = always_redraw(make_dot_getter(state, positions))
             animated_dots.append(animated_dot)
