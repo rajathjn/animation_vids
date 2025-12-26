@@ -37,7 +37,7 @@ def generate_hit_sound(
 
 
 def generate_ambient_sound(
-    duration: float = 12, sample_rate: int = 44100, volume: float = 0.1
+    duration: float = 12, sample_rate: int = 44100, volume: float = 0.3
 ) -> NDArray[np.int16]:
     """
     Generate a simple ambient/ASMR-like background sound.
