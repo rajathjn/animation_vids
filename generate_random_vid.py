@@ -17,16 +17,22 @@ def get_random_point_in_circle(radius):
     y = round(r * math.sin(angle), 2)
     return [x, y, 0]
 
-START_COUNT = 63
+START_COUNT = 14
 
 def main( generation_num: int ) -> None:
     _SEED = datetime.datetime.now().timestamp()
-    SOUND_EFFECTS = list(Path("sound_effect").glob("*.wav"))
-    ANIMATION_TYPE = random.choice(["BouncingDot", "BouncingDots"])
-    MAX_SPEED = random_uniform_2dec(10.0, 20.0)
-
+    
     random.seed(_SEED)
     rnd_color = RandomColorGenerator(seed=_SEED)
+    
+    SOUND_EFFECTS = list(Path("sound_effect").glob("*.wav"))
+    ANIMATION_TYPE = random.choices(
+        ["BouncingDot", "BouncingDots"],
+        weights=[0.25, 0.75]
+    )[0]
+    MAX_SPEED = random_uniform_2dec(5.0, 20.0)
+
+
 
     # Create random config for each value in app.cfg
     config_dict = {
@@ -34,9 +40,19 @@ def main( generation_num: int ) -> None:
         "CIRCLE_COLOR": random_bright_color(),
         "CIRCLE_STROKE_WIDTH": random_uniform_2dec(1.5, 2.5),
         
-        "ENABLE_TRAIL": random.choice([True, False]),
+        "ENABLE_TRAIL": random.choices(
+            [True, False],
+            weights=[0.7, 0.3]
+        )[0],
         "TRAIL_WIDTH": random_uniform_2dec(1.0, 3.0),
-        "TRAIL_FADING_TIME": random.choice([None, random_uniform_2dec(0.5, 2.0)]),
+        "TRAIL_FADING_TIME": random.choice(
+            [
+                None,                         # no fading
+                random_uniform_2dec(0.3, 1.0),   # short fade
+                random_uniform_2dec(1.0, 3.0),   # medium fade
+                random_uniform_2dec(5.0, 10.0),  # long fade (almost permanent)
+            ]
+        ),
         "TRAIL_OPACITY": random_uniform_2dec(0.4, 1.0),
         
         # need only the name
@@ -47,30 +63,30 @@ def main( generation_num: int ) -> None:
         dot_pos = get_random_point_in_circle(config_dict["CIRCLE_RADIUS"] - 1.0)
         config_dict.update({
             "DOT_COLOR": rnd_color.next(),
-            "DOT_RADIUS": random_uniform_2dec(0.1, 0.9),
+            "DOT_RADIUS": random_uniform_2dec(0.15, 0.4),
             "DOT_START_X": dot_pos[0],
             "DOT_START_Y": dot_pos[1],
             "INITIAL_VELOCITY_X": random_uniform_2dec(-MAX_SPEED, MAX_SPEED),
             "INITIAL_VELOCITY_Y": random_uniform_2dec(-MAX_SPEED, MAX_SPEED),
-            "DAMPING": random_uniform_2dec(0.80, 0.99),
+            "DAMPING": random_uniform_2dec(0.95, 0.995),
             
             "TRAIL_COLOR": rnd_color.next(),
         })
     else:
-        number_of_dots = random.randint(2, 15)
+        number_of_dots = random.randint(2, 7)
         DOTS_JSON = []
         for _ in range(number_of_dots):
             dot_pos = get_random_point_in_circle(config_dict["CIRCLE_RADIUS"] - 1.0)
             dot_info = {
                 "color": rnd_color.next(),
-                "radius": random_uniform_2dec(0.1, 0.7),
+                "radius": random_uniform_2dec(0.15, 0.35),
                 "start_pos": dot_pos,
                 "initial_velocity": [
                     random_uniform_2dec(-MAX_SPEED, MAX_SPEED),
                     random_uniform_2dec(-MAX_SPEED, MAX_SPEED),
                     0
                 ],
-                "damping": random_uniform_2dec(0.80, 0.99),
+                "damping": random_uniform_2dec(0.95, 0.995),
             }
             DOTS_JSON.append(dot_info)
         config_dict["DOTS_JSON"] = DOTS_JSON
