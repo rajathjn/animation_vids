@@ -30,10 +30,6 @@ sound_effect/
 .temp/
 temp/
 
-# Keep outputs folder but ignore its contents except structure
-outputs/
-!outputs/.gitkeep
-
 # Keep example config as reference
 !app.cfg.example
 
