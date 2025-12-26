@@ -30,8 +30,11 @@ sound_effect/
 .temp/
 temp/
 
-# Keep example config as reference
-!app.cfg.example
+# Remove media files
+*.mp4
+*.avi
+*.wav
+*.mp3
 
 # builder files
 example*.py
