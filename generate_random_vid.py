@@ -5,7 +5,31 @@ import datetime
 from manim import RandomColorGenerator, random_bright_color
 from pathlib import Path
 import math
+import json
 
+TRACKER_FILE = "tracker.json"
+
+def load_tracker():
+    """Load the current generation number and last upload time from tracker."""
+    if Path(TRACKER_FILE).exists():
+        with open(TRACKER_FILE, "r") as f:
+            return json.load(f)
+    else:
+        # Initialize tracker if it doesn't exist
+        tracker = {
+            "current_generation": 18,
+            "last_uploaded": None,
+            "last_publish_date": None,
+            "last_publish_time": None
+        }
+        save_tracker(tracker)
+        return tracker
+
+def save_tracker(tracker) -> None:
+    """Save tracker state to file."""
+    with open(TRACKER_FILE, "w") as f:
+        json.dump(tracker, f, indent=2)
+        
 # modded random.uniform to get only two decimal places
 def random_uniform_2dec(a, b):
     return round(random.uniform(a, b), 2)
@@ -111,3 +135,16 @@ def main( generation_num: int ) -> None:
         
     print(f"Animation saved to: {output}")
         
+if __name__ == "__main__":
+    tracker = load_tracker()
+    current_generation = int(tracker["current_generation"])
+    
+    for i in count(start=current_generation):
+        while True:
+            try:
+                main( generation_num=i )
+                break
+            except Exception as e:
+                print(f"Error during generation {i}: {e}")
+                print("Retrying...")
+                continue
