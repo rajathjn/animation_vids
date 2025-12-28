@@ -17,8 +17,6 @@ def get_random_point_in_circle(radius):
     y = round(r * math.sin(angle), 2)
     return [x, y, 0]
 
-START_COUNT = 18
-
 def main( generation_num: int ) -> None:
     _SEED = datetime.datetime.now().timestamp()
     
@@ -113,10 +111,4 @@ def main( generation_num: int ) -> None:
     )
         
     print(f"Animation saved to: {output}")
-
-for generation_num in count(START_COUNT):
-    try:
-        main(generation_num)
-    except Exception as e:
-        print(f"Error during generation #{generation_num}: {e}")
         
