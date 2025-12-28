@@ -17,7 +17,7 @@ def get_random_point_in_circle(radius):
     y = round(r * math.sin(angle), 2)
     return [x, y, 0]
 
-START_COUNT = 14
+START_COUNT = 18
 
 def main( generation_num: int ) -> None:
     _SEED = datetime.datetime.now().timestamp()
@@ -73,6 +73,17 @@ def main( generation_num: int ) -> None:
             "TRAIL_COLOR": rnd_color.next(),
         })
     else:
+        config_dict.update({
+            # Update Gravity for more variety
+            "GRAVITY_X": random.choices(
+                [0.0, random_uniform_2dec(-2.0, 2.0)],
+                weights=[0.25, 0.75]
+            )[0],
+            "GRAVITY_Y": random.choices(
+                [-9.8, random_uniform_2dec(-6.0, -4.0), random_uniform_2dec(-12.0, -15.0)],
+                weights=[0.25, 0.375, 0.375]
+            )[0],
+        })
         number_of_dots = random.randint(2, 7)
         DOTS_JSON = []
         for _ in range(number_of_dots):
@@ -98,14 +109,12 @@ def main( generation_num: int ) -> None:
     output = render_animation(
             animation_name=ANIMATION_TYPE,
             config=config,
-            output_name=f"Procedural Zen #{i:02d}"
+            output_name=f"Procedural Zen #{i}"
     )
         
     print(f"Animation saved to: {output}")
 
 for generation_num in count(START_COUNT):
-    if generation_num >= 100:
-        break
     try:
         main(generation_num)
     except Exception as e:
