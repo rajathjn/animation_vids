@@ -134,7 +134,7 @@ def main( generation_num: int ) -> None:
     )
         
     print(f"Animation saved to: {output}")
-        
+
 if __name__ == "__main__":
     tracker = load_tracker()
     current_generation = int(tracker["current_generation"])
