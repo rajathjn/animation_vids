@@ -29,6 +29,9 @@ sound_effect/
 *.temp
 .temp/
 temp/
+*.json
+!metadata.json
+*.exe
 
 # Remove media files
 *.mp4
