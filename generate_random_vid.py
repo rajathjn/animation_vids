@@ -28,9 +28,6 @@ def main( generation_num: int ) -> None:
         ["BouncingDot", "BouncingDots"],
         weights=[0.25, 0.75]
     )[0]
-    MAX_SPEED = random_uniform_2dec(5.0, 20.0)
-
-
 
     # Create random config for each value in app.cfg
     config_dict = {
@@ -59,6 +56,7 @@ def main( generation_num: int ) -> None:
 
     if ANIMATION_TYPE == "BouncingDot":
         dot_pos = get_random_point_in_circle(config_dict["CIRCLE_RADIUS"] - 1.0)
+        MAX_SPEED = random_uniform_2dec(5.0, 15.0)
         config_dict.update({
             "DOT_COLOR": rnd_color.next(),
             "DOT_RADIUS": random_uniform_2dec(0.15, 0.4),
@@ -66,11 +64,12 @@ def main( generation_num: int ) -> None:
             "DOT_START_Y": dot_pos[1],
             "INITIAL_VELOCITY_X": random_uniform_2dec(-MAX_SPEED, MAX_SPEED),
             "INITIAL_VELOCITY_Y": random_uniform_2dec(-MAX_SPEED, MAX_SPEED),
-            "DAMPING": random_uniform_2dec(0.95, 0.995),
+            "DAMPING": random_uniform_2dec(0.85, 0.95),
             
             "TRAIL_COLOR": rnd_color.next(),
         })
     else:
+        MAX_SPEED = random_uniform_2dec(5.0, 20.0)
         config_dict.update({
             # Update Gravity for more variety
             "GRAVITY_X": random.choices(
