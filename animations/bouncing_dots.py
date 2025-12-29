@@ -15,9 +15,7 @@ from manim import (
     Scene,
     TracedPath,
     ValueTracker,
-    always_redraw,
     linear,
-    Mobject
 )
 from numpy.typing import NDArray
 
@@ -201,19 +199,23 @@ class BouncingDots(Scene):
                 f"Animation: {total_duration:.2f}s, {len(positions_per_dot[0])} frames, trail={cfg.ENABLE_TRAIL}"
             )
 
-        # Create animated dot getters for each dot
-        def make_dot_getter(state: DotState, positions: list[NDArray[np.floating]]):
-            def get_dot_position() -> Dot:
+        # Create updater factory for each dot (more efficient than always_redraw)
+        def make_dot_updater(positions: list[NDArray[np.floating]]):
+            def update_dot_position(dot: Dot) -> None:
+                """Update dot position based on current animation time."""
                 index = min(int(time_tracker.get_value() / cfg.SIMULATION_DT), len(positions) - 1)
-                return Dot(point=positions[index], radius=state["radius"], color=state["color"])
+                dot.move_to(positions[index])
+            return update_dot_position
 
-            return get_dot_position
-
-        # Create animated dots and trails
-        animated_dots: list[Mobject] = []
+        # Create dots once and attach updaters
+        animated_dots: list[Dot] = []
+        updaters: list = []
         for state, positions in zip(dot_states, positions_per_dot):
-            animated_dot = always_redraw(make_dot_getter(state, positions))
+            animated_dot = Dot(point=positions[0], radius=state["radius"], color=state["color"])
+            updater = make_dot_updater(positions)
+            animated_dot.add_updater(updater)
             animated_dots.append(animated_dot)
+            updaters.append(updater)
 
         # Add all trails first (behind dots) to fix z-ordering
         if cfg.ENABLE_TRAIL:
@@ -238,4 +240,8 @@ class BouncingDots(Scene):
             run_time=total_duration,
             rate_func=linear,
         )
+
+        # Remove updaters after animation completes
+        for animated_dot, updater in zip(animated_dots, updaters):
+            animated_dot.remove_updater(updater)
         self.wait(1)

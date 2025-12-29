@@ -14,7 +14,6 @@ from manim import (
     Scene,
     TracedPath,
     ValueTracker,
-    always_redraw,
     linear,
 )
 from numpy.typing import NDArray
@@ -126,10 +125,6 @@ class BouncingDot(Scene):
         """
         cfg = self.config
 
-        # Create initial dot (will be replaced with animated version)
-        dot = Dot(point=positions[0], radius=cfg.DOT_RADIUS, color=cfg.DOT_COLOR)
-        self.add(dot)
-
         # Animation time tracker
         time_tracker = ValueTracker(0)
 
@@ -138,14 +133,15 @@ class BouncingDot(Scene):
                 f"Animation: {total_duration:.2f}s, {len(positions)} frames, trail={cfg.ENABLE_TRAIL}"
             )
 
-        def get_dot_position() -> Dot:
-            """Get dot at current animation time."""
-            index = min(int(time_tracker.get_value() / cfg.SIMULATION_DT), len(positions) - 1)
-            return Dot(point=positions[index], radius=cfg.DOT_RADIUS, color=cfg.DOT_COLOR)
+        # Create dot once and update position via updater (more efficient than always_redraw)
+        animated_dot = Dot(point=positions[0], radius=cfg.DOT_RADIUS, color=cfg.DOT_COLOR)
 
-        # Replace static dot with animated version
-        self.remove(dot)
-        animated_dot = always_redraw(get_dot_position)
+        def update_dot_position(dot: Dot) -> None:
+            """Update dot position based on current animation time."""
+            index = min(int(time_tracker.get_value() / cfg.SIMULATION_DT), len(positions) - 1)
+            dot.move_to(positions[index])
+
+        animated_dot.add_updater(update_dot_position)
 
         if cfg.ENABLE_TRAIL:
             trail = TracedPath(
@@ -166,4 +162,7 @@ class BouncingDot(Scene):
             run_time=total_duration,
             rate_func=linear,
         )
+
+        # Remove updater after animation completes
+        animated_dot.remove_updater(update_dot_position)
         self.wait(1)
