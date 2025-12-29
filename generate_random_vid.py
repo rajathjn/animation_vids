@@ -137,12 +137,14 @@ def main( generation_num: int ) -> None:
 
 if __name__ == "__main__":
     tracker = load_tracker()
-    current_generation = int(tracker["current_generation"])
+    generation_num = int(tracker["generation_num"])
     
-    for i in count(start=current_generation):
+    for i in count(start=generation_num):
         while True:
             try:
                 main( generation_num=i )
+                tracker["generation_num"] = i + 1
+                save_tracker(tracker)
                 break
             except Exception as e:
                 print(f"Error during generation {i}: {e}")
