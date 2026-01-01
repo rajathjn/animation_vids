@@ -42,7 +42,7 @@ def get_random_point_in_circle(radius):
     return [x, y, 0]
 
 def main( generation_num: int ) -> None:
-    _SEED = datetime.datetime.now().timestamp()
+    _SEED = int(datetime.datetime.now().timestamp())
     
     random.seed(_SEED)
     rnd_color = RandomColorGenerator(seed=_SEED)
