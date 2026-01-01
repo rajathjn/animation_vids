@@ -1,0 +1,126 @@
+{
+  "animation_name": "BouncingDots",
+  "output_name": "Procedural Zen #100",
+  "timestamp": "2025-12-30T19:12:31.858908",
+  "render_time_seconds": 345.18841990001965,
+  "config": {
+    "animation": {
+      "CIRCLE_CENTER_X": 0.0,
+      "CIRCLE_CENTER_Y": 0.0,
+      "CIRCLE_CENTER_Z": 0.0,
+      "CIRCLE_RADIUS": 3.93,
+      "CIRCLE_COLOR": "#909090",
+      "CIRCLE_STROKE_WIDTH": 2.2,
+      "DOT_START_X": 0.0,
+      "DOT_START_Y": 2.5,
+      "DOT_START_Z": 0.0,
+      "DOT_RADIUS": 0.2,
+      "DOT_COLOR": "YELLOW",
+      "GRAVITY_X": -0.53,
+      "GRAVITY_Y": -12.05,
+      "GRAVITY_Z": 0.0,
+      "INITIAL_VELOCITY_X": -2.0,
+      "INITIAL_VELOCITY_Y": -4.8,
+      "INITIAL_VELOCITY_Z": 0.0,
+      "DAMPING": 0.99,
+      "SIMULATION_DT": 0.001,
+      "MAX_SIMULATION_TIME": 600.0,
+      "ENABLE_TRAIL": false,
+      "TRAIL_COLOR": "RED",
+      "TRAIL_WIDTH": 1.76,
+      "TRAIL_OPACITY": 0.8,
+      "TRAIL_FADING_TIME": null,
+      "SOUND_EFFECT": "billiard-ball.wav",
+      "USE_GENERATED_SOUND": false,
+      "MIN_BOUNCE_SOUND_INTERVAL": 0.05,
+      "SAMPLE_RATE": 44100.0,
+      "DEBUG": false
+    },
+    "manim": {
+      "PIXEL_WIDTH": 2160.0,
+      "PIXEL_HEIGHT": 3840.0,
+      "FRAME_RATE": 120.0,
+      "RENDERER": "cairo",
+      "BACKGROUND_COLOR": "BLACK",
+      "BACKGROUND_OPACITY": 1.0,
+      "MEDIA_DIR": "outputs",
+      "FRAME_WIDTH": 8.0,
+      "FRAME_HEIGHT": 14.22,
+      "SCENE_NAMES": "Default",
+      "DISABLE_CACHING": false,
+      "FLUSH_CACHE": false
+    },
+    "dots": {
+      "USE_SINGLE_DOT_DEFAULTS": false,
+      "DOTS_JSON": [
+        {
+          "color": "#B189C6",
+          "radius": 0.17,
+          "start_pos": [
+            -2.16,
+            -0.37,
+            0
+          ],
+          "initial_velocity": [
+            10.12,
+            10.58,
+            0
+          ],
+          "damping": 0.99
+        },
+        {
+          "color": "#DDDDDD",
+          "radius": 0.24,
+          "start_pos": [
+            1.25,
+            -0.86,
+            0
+          ],
+          "initial_velocity": [
+            -5.88,
+            13.82,
+            0
+          ],
+          "damping": 0.95
+        },
+        {
+          "color": "#77B05D",
+          "radius": 0.27,
+          "start_pos": [
+            -0.19,
+            0.47,
+            0
+          ],
+          "initial_velocity": [
+            -8.75,
+            -7.1,
+            0
+          ],
+          "damping": 0.97
+        },
+        {
+          "color": "#222222",
+          "radius": 0.16,
+          "start_pos": [
+            0.43,
+            -1.7,
+            0
+          ],
+          "initial_velocity": [
+            10.01,
+            4.94,
+            0
+          ],
+          "damping": 0.98
+        }
+      ]
+    }
+  },
+  "youtube": {
+    "title": "Procedural Zen #100: Noise into Peace | Various Hopping Bits ASMR #animation #asmr #bounce #clack",
+    "schedule": {
+      "publish_date": "2026-01-25",
+      "publish_time": "06:00"
+    }
+  }
+}

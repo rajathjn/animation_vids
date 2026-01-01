@@ -1,0 +1,126 @@
+{
+  "animation_name": "BouncingDots",
+  "output_name": "Procedural Zen #131",
+  "timestamp": "2026-01-01T15:03:01.085220",
+  "render_time_seconds": 337.72161989999586,
+  "config": {
+    "animation": {
+      "CIRCLE_CENTER_X": 0.0,
+      "CIRCLE_CENTER_Y": 0.0,
+      "CIRCLE_CENTER_Z": 0.0,
+      "CIRCLE_RADIUS": 3.32,
+      "CIRCLE_COLOR": "#FFC297",
+      "CIRCLE_STROKE_WIDTH": 2.49,
+      "DOT_START_X": 0.0,
+      "DOT_START_Y": 2.5,
+      "DOT_START_Z": 0.0,
+      "DOT_RADIUS": 0.2,
+      "DOT_COLOR": "YELLOW",
+      "GRAVITY_X": -0.87,
+      "GRAVITY_Y": -14.93,
+      "GRAVITY_Z": 0.0,
+      "INITIAL_VELOCITY_X": -2.0,
+      "INITIAL_VELOCITY_Y": -4.8,
+      "INITIAL_VELOCITY_Z": 0.0,
+      "DAMPING": 0.99,
+      "SIMULATION_DT": 0.001,
+      "MAX_SIMULATION_TIME": 600.0,
+      "ENABLE_TRAIL": false,
+      "TRAIL_COLOR": "RED",
+      "TRAIL_WIDTH": 2.47,
+      "TRAIL_OPACITY": 0.84,
+      "TRAIL_FADING_TIME": 2.03,
+      "SOUND_EFFECT": "IClick-Clack.wav",
+      "USE_GENERATED_SOUND": false,
+      "MIN_BOUNCE_SOUND_INTERVAL": 0.05,
+      "SAMPLE_RATE": 44100.0,
+      "DEBUG": false
+    },
+    "manim": {
+      "PIXEL_WIDTH": 2160.0,
+      "PIXEL_HEIGHT": 3840.0,
+      "FRAME_RATE": 120.0,
+      "RENDERER": "cairo",
+      "BACKGROUND_COLOR": "BLACK",
+      "BACKGROUND_OPACITY": 1.0,
+      "MEDIA_DIR": "outputs",
+      "FRAME_WIDTH": 8.0,
+      "FRAME_HEIGHT": 14.22,
+      "SCENE_NAMES": "Default",
+      "DISABLE_CACHING": true,
+      "FLUSH_CACHE": true
+    },
+    "dots": {
+      "USE_SINGLE_DOT_DEFAULTS": false,
+      "DOTS_JSON": [
+        {
+          "color": "#C78D46",
+          "radius": 0.2,
+          "start_pos": [
+            -0.58,
+            -1.91,
+            0
+          ],
+          "initial_velocity": [
+            -4.56,
+            -11.78,
+            0
+          ],
+          "damping": 0.96
+        },
+        {
+          "color": "#B189C6",
+          "radius": 0.28,
+          "start_pos": [
+            0.0,
+            1.57,
+            0
+          ],
+          "initial_velocity": [
+            -5.56,
+            13.57,
+            0
+          ],
+          "damping": 0.97
+        },
+        {
+          "color": "#9CDCEB",
+          "radius": 0.18,
+          "start_pos": [
+            -0.55,
+            -1.07,
+            0
+          ],
+          "initial_velocity": [
+            -11.49,
+            -13.94,
+            0
+          ],
+          "damping": 0.99
+        },
+        {
+          "color": "#FF862F",
+          "radius": 0.3,
+          "start_pos": [
+            1.58,
+            -1.64,
+            0
+          ],
+          "initial_velocity": [
+            -2.25,
+            12.84,
+            0
+          ],
+          "damping": 0.99
+        }
+      ]
+    }
+  },
+  "youtube": {
+    "title": "Procedural Zen #131: Wild to Balanced | Various Hopping Bits ASMR #animation #asmr #bounce #clack",
+    "schedule": {
+      "publish_date": "2026-02-02",
+      "publish_time": "12:00"
+    }
+  }
+}

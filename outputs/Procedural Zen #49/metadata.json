@@ -1,0 +1,171 @@
+{
+  "animation_name": "BouncingDots",
+  "output_name": "Procedural Zen #49",
+  "timestamp": "2025-12-29T16:04:39.433883",
+  "render_time_seconds": 234.02854520000983,
+  "config": {
+    "animation": {
+      "CIRCLE_CENTER_X": 0.0,
+      "CIRCLE_CENTER_Y": 0.0,
+      "CIRCLE_CENTER_Z": 0.0,
+      "CIRCLE_RADIUS": 3.14,
+      "CIRCLE_COLOR": "#F3E08D",
+      "CIRCLE_STROKE_WIDTH": 2.38,
+      "DOT_START_X": 0.0,
+      "DOT_START_Y": 2.5,
+      "DOT_START_Z": 0.0,
+      "DOT_RADIUS": 0.2,
+      "DOT_COLOR": "YELLOW",
+      "GRAVITY_X": 0.0,
+      "GRAVITY_Y": -14.9,
+      "GRAVITY_Z": 0.0,
+      "INITIAL_VELOCITY_X": -2.0,
+      "INITIAL_VELOCITY_Y": -4.8,
+      "INITIAL_VELOCITY_Z": 0.0,
+      "DAMPING": 0.99,
+      "SIMULATION_DT": 0.001,
+      "MAX_SIMULATION_TIME": 600.0,
+      "ENABLE_TRAIL": true,
+      "TRAIL_COLOR": "RED",
+      "TRAIL_WIDTH": 1.02,
+      "TRAIL_OPACITY": 0.56,
+      "TRAIL_FADING_TIME": 2.17,
+      "SOUND_EFFECT": "IClick-Clack.wav",
+      "USE_GENERATED_SOUND": false,
+      "MIN_BOUNCE_SOUND_INTERVAL": 0.05,
+      "SAMPLE_RATE": 44100.0,
+      "DEBUG": false
+    },
+    "manim": {
+      "PIXEL_WIDTH": 2160.0,
+      "PIXEL_HEIGHT": 3840.0,
+      "FRAME_RATE": 120.0,
+      "RENDERER": "cairo",
+      "BACKGROUND_COLOR": "BLACK",
+      "BACKGROUND_OPACITY": 1.0,
+      "MEDIA_DIR": "outputs",
+      "FRAME_WIDTH": 8.0,
+      "FRAME_HEIGHT": 14.22,
+      "SCENE_NAMES": "Default",
+      "DISABLE_CACHING": true,
+      "FLUSH_CACHE": true
+    },
+    "dots": {
+      "USE_SINGLE_DOT_DEFAULTS": false,
+      "DOTS_JSON": [
+        {
+          "color": "#F4D345",
+          "radius": 0.17,
+          "start_pos": [
+            -0.9,
+            -0.13,
+            0
+          ],
+          "initial_velocity": [
+            -4.3,
+            11.57,
+            0
+          ],
+          "damping": 0.98
+        },
+        {
+          "color": "#F0AC5F",
+          "radius": 0.29,
+          "start_pos": [
+            0.3,
+            -0.31,
+            0
+          ],
+          "initial_velocity": [
+            5.01,
+            -3.39,
+            0
+          ],
+          "damping": 0.99
+        },
+        {
+          "color": "#E8C11C",
+          "radius": 0.16,
+          "start_pos": [
+            0.15,
+            0.66,
+            0
+          ],
+          "initial_velocity": [
+            -9.54,
+            11.74,
+            0
+          ],
+          "damping": 0.97
+        },
+        {
+          "color": "#DDDDDD",
+          "radius": 0.28,
+          "start_pos": [
+            -1.34,
+            1.2,
+            0
+          ],
+          "initial_velocity": [
+            -12.01,
+            5.77,
+            0
+          ],
+          "damping": 0.97
+        },
+        {
+          "color": "#222222",
+          "radius": 0.26,
+          "start_pos": [
+            -0.43,
+            0.96,
+            0
+          ],
+          "initial_velocity": [
+            12.75,
+            -6.05,
+            0
+          ],
+          "damping": 0.97
+        },
+        {
+          "color": "#699C52",
+          "radius": 0.24,
+          "start_pos": [
+            -0.16,
+            -0.33,
+            0
+          ],
+          "initial_velocity": [
+            11.19,
+            13.44,
+            0
+          ],
+          "damping": 0.96
+        },
+        {
+          "color": "#E07A5F",
+          "radius": 0.18,
+          "start_pos": [
+            -0.71,
+            -0.88,
+            0
+          ],
+          "initial_velocity": [
+            -7.99,
+            -11.48,
+            0
+          ],
+          "damping": 0.97
+        }
+      ]
+    }
+  },
+  "youtube": {
+    "title": "Procedural Zen #49: Noise into Peace | Active Moving Points ASMR #animation #asmr #bounce #clack",
+    "schedule": {
+      "publish_date": "2026-01-12",
+      "publish_time": "12:00"
+    }
+  }
+}

@@ -1,35 +1,35 @@
 {
   "animation_name": "BouncingDot",
-  "output_name": "Procedural Zen #20",
-  "timestamp": "2025-12-28T20:51:25.063243",
-  "render_time_seconds": 93.95141630002763,
+  "output_name": "Procedural Zen #200",
+  "timestamp": "2026-01-01T21:51:00.728705",
+  "render_time_seconds": 70.3006172000023,
   "config": {
     "animation": {
       "CIRCLE_CENTER_X": 0.0,
       "CIRCLE_CENTER_Y": 0.0,
       "CIRCLE_CENTER_Z": 0.0,
-      "CIRCLE_RADIUS": 3.76,
-      "CIRCLE_COLOR": "#91B5C6",
-      "CIRCLE_STROKE_WIDTH": 1.8,
-      "DOT_START_X": 0.38,
-      "DOT_START_Y": -1.99,
+      "CIRCLE_RADIUS": 3.55,
+      "CIRCLE_COLOR": "#C1E0B3",
+      "CIRCLE_STROKE_WIDTH": 2.38,
+      "DOT_START_X": 0.79,
+      "DOT_START_Y": 2.22,
       "DOT_START_Z": 0.0,
       "DOT_RADIUS": 0.27,
-      "DOT_COLOR": "#888888",
+      "DOT_COLOR": "#58C4DD",
       "GRAVITY_X": 0.0,
       "GRAVITY_Y": -9.8,
       "GRAVITY_Z": 0.0,
-      "INITIAL_VELOCITY_X": -10.28,
-      "INITIAL_VELOCITY_Y": -9.58,
+      "INITIAL_VELOCITY_X": -7.35,
+      "INITIAL_VELOCITY_Y": -1.21,
       "INITIAL_VELOCITY_Z": 0.0,
-      "DAMPING": 0.89,
+      "DAMPING": 0.87,
       "SIMULATION_DT": 0.001,
       "MAX_SIMULATION_TIME": 600.0,
       "ENABLE_TRAIL": true,
-      "TRAIL_COLOR": "#444444",
-      "TRAIL_WIDTH": 2.3,
-      "TRAIL_OPACITY": 0.52,
-      "TRAIL_FADING_TIME": null,
+      "TRAIL_COLOR": "#E8C11C",
+      "TRAIL_WIDTH": 1.48,
+      "TRAIL_OPACITY": 0.73,
+      "TRAIL_FADING_TIME": 6.69,
       "SOUND_EFFECT": "clack.wav",
       "USE_GENERATED_SOUND": false,
       "MIN_BOUNCE_SOUND_INTERVAL": 0.05,
@@ -102,10 +102,10 @@
     }
   },
   "youtube": {
-    "title": "Procedural Zen #20: Active Point | Sole Mark ASMR #animation #asmr #bounce #clack",
+    "title": "Procedural Zen #200: Jumping Spot | Single Dot ASMR #animation #asmr #bounce #clack",
     "schedule": {
-      "publish_date": "2026-01-02",
-      "publish_time": "12:00"
+      "publish_date": "2026-02-19",
+      "publish_time": "18:00"
     }
   }
 }

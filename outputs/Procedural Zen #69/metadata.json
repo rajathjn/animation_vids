@@ -1,36 +1,36 @@
 {
   "animation_name": "BouncingDot",
-  "output_name": "Procedural Zen #20",
-  "timestamp": "2025-12-28T20:51:25.063243",
-  "render_time_seconds": 93.95141630002763,
+  "output_name": "Procedural Zen #69",
+  "timestamp": "2025-12-30T16:46:08.433746",
+  "render_time_seconds": 83.61185480002314,
   "config": {
     "animation": {
       "CIRCLE_CENTER_X": 0.0,
       "CIRCLE_CENTER_Y": 0.0,
       "CIRCLE_CENTER_Z": 0.0,
-      "CIRCLE_RADIUS": 3.76,
-      "CIRCLE_COLOR": "#91B5C6",
-      "CIRCLE_STROKE_WIDTH": 1.8,
-      "DOT_START_X": 0.38,
-      "DOT_START_Y": -1.99,
+      "CIRCLE_RADIUS": 3.49,
+      "CIRCLE_COLOR": "#E7A7A1",
+      "CIRCLE_STROKE_WIDTH": 2.27,
+      "DOT_START_X": 0.55,
+      "DOT_START_Y": 2.14,
       "DOT_START_Z": 0.0,
-      "DOT_RADIUS": 0.27,
-      "DOT_COLOR": "#888888",
+      "DOT_RADIUS": 0.25,
+      "DOT_COLOR": "#444444",
       "GRAVITY_X": 0.0,
       "GRAVITY_Y": -9.8,
       "GRAVITY_Z": 0.0,
-      "INITIAL_VELOCITY_X": -10.28,
-      "INITIAL_VELOCITY_Y": -9.58,
+      "INITIAL_VELOCITY_X": 3.27,
+      "INITIAL_VELOCITY_Y": -5.15,
       "INITIAL_VELOCITY_Z": 0.0,
-      "DAMPING": 0.89,
+      "DAMPING": 0.88,
       "SIMULATION_DT": 0.001,
       "MAX_SIMULATION_TIME": 600.0,
-      "ENABLE_TRAIL": true,
-      "TRAIL_COLOR": "#444444",
-      "TRAIL_WIDTH": 2.3,
-      "TRAIL_OPACITY": 0.52,
+      "ENABLE_TRAIL": false,
+      "TRAIL_COLOR": "#E07A5F",
+      "TRAIL_WIDTH": 1.03,
+      "TRAIL_OPACITY": 0.97,
       "TRAIL_FADING_TIME": null,
-      "SOUND_EFFECT": "clack.wav",
+      "SOUND_EFFECT": "IClick-Clack.wav",
       "USE_GENERATED_SOUND": false,
       "MIN_BOUNCE_SOUND_INTERVAL": 0.05,
       "SAMPLE_RATE": 44100.0,
@@ -47,8 +47,8 @@
       "FRAME_WIDTH": 8.0,
       "FRAME_HEIGHT": 14.22,
       "SCENE_NAMES": "Default",
-      "DISABLE_CACHING": true,
-      "FLUSH_CACHE": true
+      "DISABLE_CACHING": false,
+      "FLUSH_CACHE": false
     },
     "dots": {
       "USE_SINGLE_DOT_DEFAULTS": false,
@@ -102,9 +102,9 @@
     }
   },
   "youtube": {
-    "title": "Procedural Zen #20: Active Point | Sole Mark ASMR #animation #asmr #bounce #clack",
+    "title": "Procedural Zen #69: Jumping Spot | One Point ASMR #animation #asmr #bounce #clack",
     "schedule": {
-      "publish_date": "2026-01-02",
+      "publish_date": "2026-01-17",
       "publish_time": "12:00"
     }
   }

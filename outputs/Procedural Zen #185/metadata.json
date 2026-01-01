@@ -1,35 +1,35 @@
 {
-  "animation_name": "BouncingDot",
-  "output_name": "Procedural Zen #20",
-  "timestamp": "2025-12-28T20:51:25.063243",
-  "render_time_seconds": 93.95141630002763,
+  "animation_name": "BouncingDots",
+  "output_name": "Procedural Zen #185",
+  "timestamp": "2026-01-01T20:53:38.239648",
+  "render_time_seconds": 272.81916099999216,
   "config": {
     "animation": {
       "CIRCLE_CENTER_X": 0.0,
       "CIRCLE_CENTER_Y": 0.0,
       "CIRCLE_CENTER_Z": 0.0,
-      "CIRCLE_RADIUS": 3.76,
-      "CIRCLE_COLOR": "#91B5C6",
-      "CIRCLE_STROKE_WIDTH": 1.8,
-      "DOT_START_X": 0.38,
-      "DOT_START_Y": -1.99,
+      "CIRCLE_RADIUS": 3.38,
+      "CIRCLE_COLOR": "#FFFFFF",
+      "CIRCLE_STROKE_WIDTH": 1.86,
+      "DOT_START_X": 0.0,
+      "DOT_START_Y": 2.5,
       "DOT_START_Z": 0.0,
-      "DOT_RADIUS": 0.27,
-      "DOT_COLOR": "#888888",
-      "GRAVITY_X": 0.0,
-      "GRAVITY_Y": -9.8,
+      "DOT_RADIUS": 0.2,
+      "DOT_COLOR": "YELLOW",
+      "GRAVITY_X": 1.95,
+      "GRAVITY_Y": -13.56,
       "GRAVITY_Z": 0.0,
-      "INITIAL_VELOCITY_X": -10.28,
-      "INITIAL_VELOCITY_Y": -9.58,
+      "INITIAL_VELOCITY_X": -2.0,
+      "INITIAL_VELOCITY_Y": -4.8,
       "INITIAL_VELOCITY_Z": 0.0,
-      "DAMPING": 0.89,
+      "DAMPING": 0.99,
       "SIMULATION_DT": 0.001,
       "MAX_SIMULATION_TIME": 600.0,
       "ENABLE_TRAIL": true,
-      "TRAIL_COLOR": "#444444",
-      "TRAIL_WIDTH": 2.3,
-      "TRAIL_OPACITY": 0.52,
-      "TRAIL_FADING_TIME": null,
+      "TRAIL_COLOR": "RED",
+      "TRAIL_WIDTH": 1.59,
+      "TRAIL_OPACITY": 0.51,
+      "TRAIL_FADING_TIME": 7.87,
       "SOUND_EFFECT": "clack.wav",
       "USE_GENERATED_SOUND": false,
       "MIN_BOUNCE_SOUND_INTERVAL": 0.05,
@@ -54,58 +54,58 @@
       "USE_SINGLE_DOT_DEFAULTS": false,
       "DOTS_JSON": [
         {
-          "color": "RED",
-          "radius": 0.25,
+          "color": "#DDDDDD",
+          "radius": 0.19,
           "start_pos": [
-            0,
-            0,
+            2.01,
+            -0.44,
             0
           ],
           "initial_velocity": [
-            0.5,
-            -5,
-            0
-          ],
-          "damping": 0.95
-        },
-        {
-          "color": "GREEN",
-          "radius": 0.15,
-          "start_pos": [
-            1,
-            0,
-            0
-          ],
-          "initial_velocity": [
-            -1,
-            -8,
+            5.78,
+            -5.45,
             0
           ],
           "damping": 0.99
         },
         {
-          "color": "BLUE",
-          "radius": 0.2,
+          "color": "#D147BD",
+          "radius": 0.16,
           "start_pos": [
-            -0.5,
-            2,
+            0.51,
+            2.09,
             0
           ],
           "initial_velocity": [
-            3,
-            -4,
+            3.96,
+            -5.61,
             0
           ],
-          "damping": 0.98
+          "damping": 0.97
+        },
+        {
+          "color": "#83C167",
+          "radius": 0.3,
+          "start_pos": [
+            1.53,
+            -1.22,
+            0
+          ],
+          "initial_velocity": [
+            1.2,
+            -0.06,
+            0
+          ],
+          "damping": 0.99
         }
       ]
     }
   },
   "youtube": {
-    "title": "Procedural Zen #20: Active Point | Sole Mark ASMR #animation #asmr #bounce #clack",
+    "title": "Procedural Zen #185: Noise into Peace | Various Hopping Bits ASMR #animation #asmr #bounce #clack",
     "schedule": {
-      "publish_date": "2026-01-02",
-      "publish_time": "12:00"
+      "publish_date": "2026-02-16",
+      "publish_time": "00:00"
     }
   }
 }
