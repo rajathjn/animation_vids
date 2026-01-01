@@ -160,6 +160,11 @@ def render_animation(
     print(f"  Video: {final_video_path}")
     print(f"  Folder: {animation_output_dir}")
     print(f"{'=' * 60}\n")
+    
+    # Delete scene to free memory
+    del scene
+    import gc
+    gc.collect()
 
     return final_video_path
 
